@@ -21,7 +21,7 @@ defineProps<{
   justify-content: center;
   gap: 0.5rem;
   border: none;
-  border-radius: 9999px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(24px);
   color: var(--color-text);
