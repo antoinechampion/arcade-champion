@@ -101,14 +101,15 @@ defineProps<{
   inset: 0;
   border-radius: inherit;
   padding: 1.5px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.25),
-    var(--color-primary-light),
-    var(--color-accent),
-    rgba(255, 255, 255, 0.08),
-    var(--color-primary-dark),
-    rgba(255, 255, 255, 0.2)
+  background: conic-gradient(
+    from 135deg,
+    transparent 0%,
+    var(--color-primary-light) 15%,
+    transparent 30%,
+    var(--color-accent) 50%,
+    transparent 65%,
+    var(--color-primary-dark) 80%,
+    transparent 100%
   );
   mask:
     linear-gradient(#000 0 0) content-box,
@@ -119,13 +120,27 @@ defineProps<{
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   pointer-events: none;
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
+  opacity: 0.4;
+  filter: blur(2px);
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease,
+    background 0.3s ease;
 }
 
 .arcade-btn:focus-visible::after,
 .arcade-btn:focus::after {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.25),
+    var(--color-primary-light),
+    var(--color-accent),
+    rgba(255, 255, 255, 0.08),
+    var(--color-primary-dark),
+    rgba(255, 255, 255, 0.2)
+  );
   opacity: 0.8;
+  filter: blur(0px);
 }
 
 .arcade-btn:focus-visible,

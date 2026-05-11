@@ -18,22 +18,36 @@ import GameCard from './components/GameCard.vue'
       platform="Fightcade"
       :release-year="1999"
       developer="Capcom"
-      image-url="https://images.igdb.com/igdb/image/upload/t_cover_big/co1wjp.jpg"
+      image-url="https://i.pinimg.com/736x/a8/db/46/a8db46f121860572350471b0e4405c32.jpg"
       selected
     />
     <GameCard
-      title="Metal Slug 3"
+      title="Marvel VS Capcom 2"
       platform="MAME"
       :release-year="2000"
       developer="SNK"
-      image-url="https://images.igdb.com/igdb/image/upload/t_cover_big/co1qxk.jpg"
+      image-url="https://wiki.supercombo.gg/images/thumb/2/29/MVSC2_Cover_Art.jpg/300px-MVSC2_Cover_Art.jpg"
     />
     <GameCard
-      title="Guilty Gear XX Accent Core"
+      title="King of Fighters 98"
       platform="Fightcade"
       :release-year="2002"
-      developer="Arc System Works"
+      developer="SNK"
       image-url="https://images.igdb.com/igdb/image/upload/t_cover_big/co1y8h.jpg"
+    />
+    <GameCard
+        title="Street Fighter 6"
+        platform="Steam"
+        :release-year="2025"
+        developer="Capcom"
+        image-url="https://upload.wikimedia.org/wikipedia/en/thumb/9/94/Street_Fighter_6_box_art.jpg/250px-Street_Fighter_6_box_art.jpg"
+    />
+    <GameCard
+        title="Street Fighter 2: Champion Edition"
+        platform="Fightcade"
+        :release-year="1992"
+        developer="Capcom"
+        image-url="https://i.redd.it/2rgdsgr7p3pc1.jpeg"
     />
   </div>
 </template>

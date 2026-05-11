@@ -46,12 +46,16 @@ defineProps<{
 
 .game-card .info {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding: 0.75rem;
+  padding-top: 3rem;
   gap: 0.25rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 150%);
   opacity: 0;
   transform: translateY(0.5rem);
   transition:
