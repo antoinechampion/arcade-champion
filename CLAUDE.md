@@ -24,6 +24,8 @@ npm install          # install dependencies
 npm run dev          # dev server with hot reload
 npm run build        # production build
 npm run preview      # preview production build
+npm test             # run tests once
+npm run test:watch   # run tests in watch mode
 ```
 
 ## Design Principles
