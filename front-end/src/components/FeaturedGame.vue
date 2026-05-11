@@ -34,6 +34,7 @@ defineProps<{
 <style scoped>
 .banner-img {
   animation: pan 30s ease-in-out infinite alternate;
+  image-rendering: pixelated;
   mask-image:
     linear-gradient(to right, transparent 0%, black 40%),
     linear-gradient(to top, transparent 0%, black 40%);
