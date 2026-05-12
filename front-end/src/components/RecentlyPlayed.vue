@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import GameCard from './GameCard.vue'
 import type { Game } from '@/api/types'
 
@@ -8,20 +8,13 @@ const props = defineProps<{
 }>()
 
 const selectedIndex = ref(0)
+const focused = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
 const translateX = ref(0)
 
 const listStyle = computed(() => ({
   transform: `translateX(${translateX.value}px)`,
 }))
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeydown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', onKeydown)
-})
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowRight') {
@@ -30,7 +23,10 @@ function onKeydown(e: KeyboardEvent) {
   } else if (e.key === 'ArrowLeft') {
     selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
     scrollToSelected()
+  } else {
+    return
   }
+  e.preventDefault()
 }
 
 function scrollToSelected() {
@@ -51,7 +47,7 @@ function scrollToSelected() {
 <template>
   <section class="recently-played-section py-6 px-12">
     <h2 class="text-lg font-bold mb-4 opacity-80 px-12">Recently Played</h2>
-    <div class="recently-played-clip">
+    <div class="recently-played-clip" tabindex="0" @keydown="onKeydown" @focus="focused = true" @blur="focused = false">
       <div ref="containerRef" class="recently-played-list" :style="listStyle">
         <GameCard
           v-for="(game, index) in games"
@@ -61,7 +57,7 @@ function scrollToSelected() {
           :release-year="game.releaseYear"
           :developer="game.developer"
           :image-url="game.imageUrl"
-          :selected="index === selectedIndex"
+          :selected="focused && index === selectedIndex"
         />
       </div>
     </div>
@@ -71,6 +67,7 @@ function scrollToSelected() {
 <style scoped>
 .recently-played-clip {
   overflow-x: clip;
+  outline: none;
 }
 
 .recently-played-list {

@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import FeaturedGame from './components/FeaturedGame.vue'
 import RecentlyPlayed from './components/RecentlyPlayed.vue'
+import AllGames from './components/AllGames.vue'
 import { fetchRecentlyPlayed } from '@/api/client'
 import type { Game } from '@/api/types'
 
@@ -26,4 +27,6 @@ const recentGames = computed(() => games.value.slice(1))
   />
 
   <RecentlyPlayed :games="recentGames" />
+
+  <AllGames />
 </template>

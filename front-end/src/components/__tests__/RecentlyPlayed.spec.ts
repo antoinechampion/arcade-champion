@@ -15,8 +15,17 @@ describe('RecentlyPlayed', () => {
     expect(cards).toHaveLength(3)
   })
 
-  it('selects the first card by default', () => {
+  it('no card is selected when not focused', () => {
     const wrapper = mount(RecentlyPlayed, { props: { games } })
+    const cards = wrapper.findAll('.game-card')
+    expect(cards[0].classes()).not.toContain('selected')
+    expect(cards[1].classes()).not.toContain('selected')
+  })
+
+  it('selects the first card on focus', async () => {
+    const wrapper = mount(RecentlyPlayed, { props: { games } })
+    const clip = wrapper.find('.recently-played-clip')
+    await clip.trigger('focus')
     const cards = wrapper.findAll('.game-card')
     expect(cards[0].classes()).toContain('selected')
     expect(cards[1].classes()).not.toContain('selected')
@@ -24,8 +33,9 @@ describe('RecentlyPlayed', () => {
 
   it('moves selection right on ArrowRight', async () => {
     const wrapper = mount(RecentlyPlayed, { props: { games } })
-    await window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
-    await wrapper.vm.$nextTick()
+    const clip = wrapper.find('.recently-played-clip')
+    await clip.trigger('focus')
+    await clip.trigger('keydown', { key: 'ArrowRight' })
     const cards = wrapper.findAll('.game-card')
     expect(cards[0].classes()).not.toContain('selected')
     expect(cards[1].classes()).toContain('selected')
@@ -33,28 +43,40 @@ describe('RecentlyPlayed', () => {
 
   it('moves selection left on ArrowLeft', async () => {
     const wrapper = mount(RecentlyPlayed, { props: { games } })
-    await window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
-    await window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))
-    await wrapper.vm.$nextTick()
+    const clip = wrapper.find('.recently-played-clip')
+    await clip.trigger('focus')
+    await clip.trigger('keydown', { key: 'ArrowRight' })
+    await clip.trigger('keydown', { key: 'ArrowLeft' })
     const cards = wrapper.findAll('.game-card')
     expect(cards[0].classes()).toContain('selected')
   })
 
   it('does not go below zero', async () => {
     const wrapper = mount(RecentlyPlayed, { props: { games } })
-    await window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))
-    await wrapper.vm.$nextTick()
+    const clip = wrapper.find('.recently-played-clip')
+    await clip.trigger('focus')
+    await clip.trigger('keydown', { key: 'ArrowLeft' })
     const cards = wrapper.findAll('.game-card')
     expect(cards[0].classes()).toContain('selected')
   })
 
   it('does not go past the last card', async () => {
     const wrapper = mount(RecentlyPlayed, { props: { games } })
+    const clip = wrapper.find('.recently-played-clip')
+    await clip.trigger('focus')
     for (let i = 0; i < 5; i++) {
-      await window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }))
+      await clip.trigger('keydown', { key: 'ArrowRight' })
     }
-    await wrapper.vm.$nextTick()
     const cards = wrapper.findAll('.game-card')
     expect(cards[2].classes()).toContain('selected')
+  })
+
+  it('clears selection on blur', async () => {
+    const wrapper = mount(RecentlyPlayed, { props: { games } })
+    const clip = wrapper.find('.recently-played-clip')
+    await clip.trigger('focus')
+    expect(wrapper.findAll('.game-card')[0].classes()).toContain('selected')
+    await clip.trigger('blur')
+    expect(wrapper.findAll('.game-card')[0].classes()).not.toContain('selected')
   })
 })

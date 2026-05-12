@@ -56,7 +56,7 @@ const mockRecentlyPlayed: Game[] = [
     platform: 'Steam',
     releaseYear: 2024,
     developer: 'Bandai Namco',
-    imageUrl: 'https://image.api.playstation.com/vulcan/ap/rnd/202212/2009/04S9doVJzhHa0OE8o8wax88S.png',
+    imageUrl: 'https://cdn2.steamgriddb.com/grid/a9283100ad06971a29f5382f6ab25ea4.jpg',
   },
   {
     id: '8',
@@ -87,4 +87,14 @@ const mockRecentlyPlayed: Game[] = [
 export async function fetchRecentlyPlayed(): Promise<Game[]> {
   // TODO: replace with actual backend call
   return mockRecentlyPlayed
+}
+
+export async function fetchAllGames(query?: string): Promise<Game[]> {
+  // TODO: replace with actual backend call
+  let games = [...mockRecentlyPlayed].sort((a, b) => a.title.localeCompare(b.title))
+  if (query) {
+    const q = query.toLowerCase()
+    games = games.filter((g) => g.title.toLowerCase().includes(q))
+  }
+  return games
 }
