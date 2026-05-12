@@ -51,8 +51,10 @@ npm run test:watch   # run tests in watch mode
 
 ## Workflow
 
-1. Plan steps and dependencies
-2. Refine for consistency and good patterns
-3. Complete implementation
-4. Check if the codebase can be simplified post-change
-5. Update tests
+**You MUST follow these steps in order. Do NOT write code before completing steps 1–2. Do NOT consider the task done before completing steps 4–5.**
+
+1. **Plan** — state the steps, files involved, and dependencies. Get user confirmation before proceeding.
+2. **Refine** — check the plan for consistency with existing patterns and conventions in this file.
+3. **Implement** — write the code.
+4. **Simplify** — review the codebase post-change. Remove dead code, reduce duplication, flatten unnecessary abstractions.
+5. **Test** — add or update tests covering the new behavior.
