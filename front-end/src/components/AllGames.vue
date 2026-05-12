@@ -1,57 +1,104 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import GameCard from './GameCard.vue'
 import ArcadeButton from './ArcadeButton.vue'
 import { fetchAllGames } from '@/api/client'
 import type { Game } from '@/api/types'
 
+const COLUMNS = 7
+
+interface GameSection {
+  letter: string
+  games: Game[]
+}
+
 const games = ref<Game[]>([])
 const searchQuery = ref('')
-const selectedIndex = ref(0)
-const focused = ref(false)
-const gridRef = ref<HTMLElement | null>(null)
+const currentSectionIdx = ref(0)
+const currentCardIdx = ref(0)
+const isFocused = ref(false)
+const containerRef = ref<HTMLElement | null>(null)
+
+const sections = computed<GameSection[]>(() => {
+  const grouped: GameSection[] = []
+  for (const game of games.value) {
+    const letter = game.title[0].toUpperCase()
+    const last = grouped[grouped.length - 1]
+    if (last && last.letter === letter) {
+      last.games.push(game)
+    } else {
+      grouped.push({ letter, games: [game] })
+    }
+  }
+  return grouped
+})
+
+function isSelected(section: number, card: number) {
+  return isFocused.value && currentSectionIdx.value === section && currentCardIdx.value === card
+}
+
+function clampCard(section: number, card: number) {
+  return Math.min(card, sections.value[section].games.length - 1)
+}
 
 onMounted(async () => {
   games.value = await fetchAllGames()
 })
 
-function getColumnCount(): number {
-  const grid = gridRef.value
-  if (!grid) return 1
-  return getComputedStyle(grid).gridTemplateColumns.split(' ').length
-}
-
 async function search() {
   const query = searchQuery.value.trim() || undefined
   games.value = await fetchAllGames(query)
-  selectedIndex.value = 0
+  currentSectionIdx.value = 0
+  currentCardIdx.value = 0
   await nextTick()
-  gridRef.value?.focus()
+  containerRef.value?.focus()
 }
 
 function onKeydown(e: KeyboardEvent) {
-  const len = games.value.length
-  if (!len) return
+  if (!sections.value.length) return
 
-  let next = selectedIndex.value
+  const col = currentCardIdx.value % COLUMNS
+  const row = Math.floor(currentCardIdx.value / COLUMNS)
+  const rows = Math.ceil(sections.value[currentSectionIdx.value].games.length / COLUMNS)
+
   switch (e.key) {
     case 'ArrowRight':
-      next = Math.min(next + 1, len - 1)
+      if (currentCardIdx.value < sections.value[currentSectionIdx.value].games.length - 1) {
+        currentCardIdx.value++
+      } else if (currentSectionIdx.value < sections.value.length - 1) {
+        currentSectionIdx.value++
+        currentCardIdx.value = 0
+      }
       break
     case 'ArrowLeft':
-      next = Math.max(next - 1, 0)
+      if (currentCardIdx.value > 0) {
+        currentCardIdx.value--
+      } else if (currentSectionIdx.value > 0) {
+        currentSectionIdx.value--
+        currentCardIdx.value = sections.value[currentSectionIdx.value].games.length - 1
+      }
       break
     case 'ArrowDown':
-      next = Math.min(next + getColumnCount(), len - 1)
+      if (row < rows - 1) {
+        currentCardIdx.value = clampCard(currentSectionIdx.value, (row + 1) * COLUMNS + col)
+      } else if (currentSectionIdx.value < sections.value.length - 1) {
+        currentSectionIdx.value++
+        currentCardIdx.value = clampCard(currentSectionIdx.value, col)
+      }
       break
     case 'ArrowUp':
-      next = Math.max(next - getColumnCount(), 0)
+      if (row > 0) {
+        currentCardIdx.value = (row - 1) * COLUMNS + col
+      } else if (currentSectionIdx.value > 0) {
+        currentSectionIdx.value--
+        const lastRow = Math.floor((sections.value[currentSectionIdx.value].games.length - 1) / COLUMNS)
+        currentCardIdx.value = clampCard(currentSectionIdx.value, lastRow * COLUMNS + col)
+      }
       break
     default:
       return
   }
   e.preventDefault()
-  selectedIndex.value = next
 }
 
 function onSearchKeydown(e: KeyboardEvent) {
@@ -76,23 +123,28 @@ function onSearchKeydown(e: KeyboardEvent) {
     </div>
 
     <div
-      ref="gridRef"
-      class="games-grid pl-12"
+      ref="containerRef"
+      class="pl-12"
       tabindex="0"
       @keydown="onKeydown"
-      @focus="focused = true"
-      @blur="focused = false"
+      @focus="isFocused = true"
+      @blur="isFocused = false"
     >
-      <GameCard
-        v-for="(game, index) in games"
-        :key="game.id"
-        :title="game.title"
-        :platform="game.platform"
-        :release-year="game.releaseYear"
-        :developer="game.developer"
-        :image-url="game.imageUrl"
-        :selected="focused && index === selectedIndex"
-      />
+      <div v-for="(section, sIdx) in sections" :key="section.letter" class="mb-6">
+        <h3 class="text-sm font-bold opacity-50 mb-3">{{ section.letter }}</h3>
+        <div class="games-grid" :data-section="section.letter">
+          <GameCard
+            v-for="(game, i) in section.games"
+            :key="game.id"
+            :title="game.title"
+            :platform="game.platform"
+            :release-year="game.releaseYear"
+            :developer="game.developer"
+            :image-url="game.imageUrl"
+            :selected="isSelected(sIdx, i)"
+          />
+        </div>
+      </div>
     </div>
 
     <p v-if="!games.length" class="px-12 opacity-50 text-sm">No games found.</p>
@@ -135,9 +187,9 @@ function onSearchKeydown(e: KeyboardEvent) {
 
 .games-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 200px);
+  grid-template-columns: repeat(v-bind(COLUMNS), 1fr);
   gap: 1.5rem;
-  padding-bottom: 2rem;
-  outline: none;
+  padding-bottom: 1rem;
 }
+
 </style>
