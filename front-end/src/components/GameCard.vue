@@ -23,7 +23,8 @@ defineProps<{
 <style scoped>
 .game-card {
   position: relative;
-  width: 12rem;
+  width: 200px;
+  min-width: 200px;
   aspect-ratio: 3 / 4;
   border-radius: 0.75rem;
   overflow: hidden;
