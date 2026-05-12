@@ -4,7 +4,10 @@ import FeaturedGame from './components/FeaturedGame.vue'
 import RecentlyPlayed from './components/RecentlyPlayed.vue'
 import AllGames from './components/AllGames.vue'
 import { fetchRecentlyPlayed } from '@/api/client'
+import { usePageNavigation } from '@/composables/navigation'
 import type { Game } from '@/api/types'
+
+usePageNavigation(['featured', 'recentlyPlayed', 'allGames'])
 
 const games = ref<Game[]>([])
 

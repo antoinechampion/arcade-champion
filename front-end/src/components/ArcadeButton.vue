@@ -1,11 +1,12 @@
 <script setup lang="ts">
 defineProps<{
   label?: string
+  focused?: boolean
 }>()
 </script>
 
 <template>
-  <button class="arcade-btn" :class="label ? 'has-label' : 'icon-only'">
+  <button class="arcade-btn" :class="[label ? 'has-label' : 'icon-only', { focused }]">
     <span v-if="$slots.icon" class="icon">
       <slot name="icon" />
     </span>
@@ -85,7 +86,8 @@ defineProps<{
 }
 
 .arcade-btn:focus-visible::before,
-.arcade-btn:focus::before {
+.arcade-btn:focus::before,
+.arcade-btn.focused::before {
   --blob1-x: 55%;
   --blob1-y: 60%;
   --blob2-x: 40%;
@@ -129,7 +131,8 @@ defineProps<{
 }
 
 .arcade-btn:focus-visible::after,
-.arcade-btn:focus::after {
+.arcade-btn:focus::after,
+.arcade-btn.focused::after {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.25),
@@ -144,7 +147,8 @@ defineProps<{
 }
 
 .arcade-btn:focus-visible,
-.arcade-btn:focus {
+.arcade-btn:focus,
+.arcade-btn.focused {
   transform: scale(1.08);
   box-shadow:
     0 0 30px var(--color-glow),

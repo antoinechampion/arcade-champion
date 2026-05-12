@@ -3,6 +3,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import GameCard from './GameCard.vue'
 import ArcadeButton from './ArcadeButton.vue'
 import { fetchAllGames } from '@/api/client'
+import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 import type { Game } from '@/api/types'
 
 const COLUMNS = 7
@@ -16,7 +17,6 @@ const games = ref<Game[]>([])
 const searchQuery = ref('')
 const currentSectionIdx = ref(0)
 const currentCardIdx = ref(0)
-const isFocused = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
 
 const sections = computed<GameSection[]>(() => {
@@ -34,7 +34,7 @@ const sections = computed<GameSection[]>(() => {
 })
 
 function isSelected(section: number, card: number) {
-  return isFocused.value && currentSectionIdx.value === section && currentCardIdx.value === card
+  return active.value && currentSectionIdx.value === section && currentCardIdx.value === card
 }
 
 function clampCard(section: number, card: number) {
@@ -51,55 +51,67 @@ async function search() {
   currentSectionIdx.value = 0
   currentCardIdx.value = 0
   await nextTick()
-  containerRef.value?.focus()
 }
 
-function onKeydown(e: KeyboardEvent) {
-  if (!sections.value.length) return
+function handleNav(command: NavCommand): boolean {
+  if (!sections.value.length) return false
 
   const col = currentCardIdx.value % COLUMNS
   const row = Math.floor(currentCardIdx.value / COLUMNS)
   const rows = Math.ceil(sections.value[currentSectionIdx.value].games.length / COLUMNS)
 
-  switch (e.key) {
-    case 'ArrowRight':
+  switch (command) {
+    case 'right':
       if (currentCardIdx.value < sections.value[currentSectionIdx.value].games.length - 1) {
         currentCardIdx.value++
       } else if (currentSectionIdx.value < sections.value.length - 1) {
         currentSectionIdx.value++
         currentCardIdx.value = 0
       }
-      break
-    case 'ArrowLeft':
+      return true
+    case 'left':
       if (currentCardIdx.value > 0) {
         currentCardIdx.value--
       } else if (currentSectionIdx.value > 0) {
         currentSectionIdx.value--
         currentCardIdx.value = sections.value[currentSectionIdx.value].games.length - 1
       }
-      break
-    case 'ArrowDown':
+      return true
+    case 'down':
       if (row < rows - 1) {
         currentCardIdx.value = clampCard(currentSectionIdx.value, (row + 1) * COLUMNS + col)
+        return true
       } else if (currentSectionIdx.value < sections.value.length - 1) {
         currentSectionIdx.value++
         currentCardIdx.value = clampCard(currentSectionIdx.value, col)
+        return true
       }
-      break
-    case 'ArrowUp':
+      return false
+    case 'up':
       if (row > 0) {
         currentCardIdx.value = (row - 1) * COLUMNS + col
+        return true
       } else if (currentSectionIdx.value > 0) {
         currentSectionIdx.value--
         const lastRow = Math.floor((sections.value[currentSectionIdx.value].games.length - 1) / COLUMNS)
         currentCardIdx.value = clampCard(currentSectionIdx.value, lastRow * COLUMNS + col)
+        return true
       }
-      break
+      return false
     default:
-      return
+      return false
   }
-  e.preventDefault()
 }
+
+const { active } = useComponentNavigation('allGames', {
+  onCommand: handleNav,
+  onEnter(from) {
+    if (from === 'up') {
+      currentSectionIdx.value = 0
+      currentCardIdx.value = 0
+    }
+  },
+})
 
 function onSearchKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') search()
@@ -125,10 +137,6 @@ function onSearchKeydown(e: KeyboardEvent) {
     <div
       ref="containerRef"
       class="pl-12"
-      tabindex="0"
-      @keydown="onKeydown"
-      @focus="isFocused = true"
-      @blur="isFocused = false"
     >
       <div v-for="(section, sIdx) in sections" :key="section.letter" class="mb-6">
         <h3 class="text-sm font-bold opacity-50 mb-3">{{ section.letter }}</h3>

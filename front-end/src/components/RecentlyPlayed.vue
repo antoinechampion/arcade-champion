@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import GameCard from './GameCard.vue'
+import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 import type { Game } from '@/api/types'
 
 const props = defineProps<{
@@ -8,7 +9,6 @@ const props = defineProps<{
 }>()
 
 const selectedIndex = ref(0)
-const focused = ref(false)
 const containerRef = ref<HTMLElement | null>(null)
 const translateX = ref(0)
 
@@ -16,18 +16,23 @@ const listStyle = computed(() => ({
   transform: `translateX(${translateX.value}px)`,
 }))
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'ArrowRight') {
-    selectedIndex.value = Math.min(selectedIndex.value + 1, props.games.length - 1)
-    scrollToSelected()
-  } else if (e.key === 'ArrowLeft') {
-    selectedIndex.value = Math.max(selectedIndex.value - 1, 0)
-    scrollToSelected()
-  } else {
-    return
-  }
-  e.preventDefault()
-}
+const { active } = useComponentNavigation('recentlyPlayed', {
+  onCommand(command: NavCommand) {
+    if (command === 'right') {
+      if (selectedIndex.value >= props.games.length - 1) return true
+      selectedIndex.value++
+      scrollToSelected()
+      return true
+    }
+    if (command === 'left') {
+      if (selectedIndex.value <= 0) return true
+      selectedIndex.value--
+      scrollToSelected()
+      return true
+    }
+    return false
+  },
+})
 
 function scrollToSelected() {
   const container = containerRef.value
@@ -47,7 +52,7 @@ function scrollToSelected() {
 <template>
   <section class="recently-played-section py-6 px-12">
     <h2 class="text-lg font-bold mb-4 opacity-80 px-12">Recently Played</h2>
-    <div class="recently-played-clip" tabindex="0" @keydown="onKeydown" @focus="focused = true" @blur="focused = false">
+    <div class="recently-played-clip">
       <div ref="containerRef" class="recently-played-list" :style="listStyle">
         <GameCard
           v-for="(game, index) in games"
@@ -57,7 +62,7 @@ function scrollToSelected() {
           :release-year="game.releaseYear"
           :developer="game.developer"
           :image-url="game.imageUrl"
-          :selected="focused && index === selectedIndex"
+          :selected="active && index === selectedIndex"
         />
       </div>
     </div>
@@ -67,13 +72,13 @@ function scrollToSelected() {
 <style scoped>
 .recently-played-clip {
   overflow-x: clip;
-  outline: none;
 }
 
 .recently-played-list {
   display: flex;
   gap: 1.5rem;
   padding: 1.5rem;
+  padding-left: 3rem;
   transition: transform 0.3s ease;
   width: max-content;
 }
