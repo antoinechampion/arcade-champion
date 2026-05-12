@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import GameCard from './GameCard.vue'
 import type { Game } from '@/api/types'
 
@@ -9,6 +9,11 @@ const props = defineProps<{
 
 const selectedIndex = ref(0)
 const containerRef = ref<HTMLElement | null>(null)
+const translateX = ref(0)
+
+const listStyle = computed(() => ({
+  transform: `translateX(${translateX.value}px)`,
+}))
 
 onMounted(() => {
   window.addEventListener('keydown', onKeydown)
@@ -29,51 +34,50 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 function scrollToSelected() {
-  nextTick(() => {
-    const container = containerRef.value
-    if (!container) return
-    const card = container.children[selectedIndex.value] as HTMLElement | undefined
-    if (!card) return
-    card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
-  })
+  const container = containerRef.value
+  if (!container) return
+  const card = container.children[selectedIndex.value] as HTMLElement | undefined
+  if (!card) return
+  const clipWidth = container.parentElement!.getBoundingClientRect().width
+  const cardLeft = card.offsetLeft
+  const cardWidth = card.offsetWidth
+  const listWidth = container.scrollWidth
+  const target = -(cardLeft - clipWidth / 2 + cardWidth / 2)
+  const minTranslate = -(listWidth - clipWidth)
+  translateX.value = Math.max(minTranslate, Math.min(0, target))
 }
 </script>
 
 <template>
-  <section class="py-6 px-12">
+  <section class="recently-played-section py-6 px-12">
     <h2 class="text-lg font-bold mb-4 opacity-80 px-12">Recently Played</h2>
-    <div ref="containerRef" class="recently-played-list">
-      <GameCard
-        v-for="(game, index) in games"
-        :key="game.id"
-        :title="game.title"
-        :platform="game.platform"
-        :release-year="game.releaseYear"
-        :developer="game.developer"
-        :image-url="game.imageUrl"
-        :selected="index === selectedIndex"
-      />
+    <div class="recently-played-clip">
+      <div ref="containerRef" class="recently-played-list" :style="listStyle">
+        <GameCard
+          v-for="(game, index) in games"
+          :key="game.id"
+          :title="game.title"
+          :platform="game.platform"
+          :release-year="game.releaseYear"
+          :developer="game.developer"
+          :image-url="game.imageUrl"
+          :selected="index === selectedIndex"
+        />
+      </div>
     </div>
   </section>
 </template>
 
 <style scoped>
+.recently-played-clip {
+  overflow-x: clip;
+}
+
 .recently-played-list {
   display: flex;
   gap: 1.5rem;
-  overflow-x: auto;
-  padding: 1.5rem 0;
-  scrollbar-width: none;
-}
-
-.recently-played-list::before,
-.recently-played-list::after {
-  content: '';
-  min-width: 1.5rem;
-  flex-shrink: 0;
-}
-
-.recently-played-list::-webkit-scrollbar {
-  display: none;
+  padding: 1.5rem;
+  transition: transform 0.3s ease;
+  width: max-content;
 }
 </style>
