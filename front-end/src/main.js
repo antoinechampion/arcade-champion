@@ -2,8 +2,7 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import App from './App.vue'
-import { GamepadPlugin } from './plugins/gamepad.ts'
+import { startGamepadPolling } from './gamepad'
 
-createApp(App)
-    .use(GamepadPlugin)
-    .mount('#app')
+createApp(App).mount('#app')
+startGamepadPolling()

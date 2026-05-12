@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readGamepad } from '../gamepad'
+import { readGamepad } from '..'
 
 function fakeGamepad(overrides: {
   axes?: number[]
