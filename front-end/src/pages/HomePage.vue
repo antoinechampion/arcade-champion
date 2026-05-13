@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import FeaturedGame from './components/FeaturedGame.vue'
-import RecentlyPlayed from './components/RecentlyPlayed.vue'
-import AllGames from './components/AllGames.vue'
+import { RouterLink } from 'vue-router'
+import FeaturedGame from '@/components/FeaturedGame.vue'
+import RecentlyPlayed from '@/components/RecentlyPlayed.vue'
+import AllGames from '@/components/AllGames.vue'
 import { fetchRecentlyPlayed } from '@/api/client'
 import { usePageNavigation } from '@/composables/navigation'
 import type { Game } from '@/api/types'
@@ -32,4 +33,25 @@ const recentGames = computed(() => games.value.slice(1))
   <RecentlyPlayed :games="recentGames" />
 
   <AllGames />
+
+  <footer class="flex justify-center py-8">
+    <RouterLink to="/backoffice" class="backoffice-link">
+      Back Office
+    </RouterLink>
+  </footer>
 </template>
+
+<style scoped>
+.backoffice-link {
+  color: var(--color-text);
+  opacity: 0.4;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.backoffice-link:hover,
+.backoffice-link:focus-visible {
+  opacity: 0.8;
+}
+</style>
