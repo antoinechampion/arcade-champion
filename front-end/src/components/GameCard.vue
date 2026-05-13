@@ -35,6 +35,7 @@ defineProps<{
 }
 
 .card-img {
+  border-radius: inherit;
   mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.3) 0%, black 30%);
   -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.3) 0%, black 30%);
   transition: mask-image 0.3s ease, -webkit-mask-image 0.3s ease;
@@ -50,6 +51,7 @@ defineProps<{
   left: 0;
   right: 0;
   bottom: 0;
+  border-radius: 0 0 0.75rem 0.75rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -67,9 +69,9 @@ defineProps<{
 .game-card::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: inherit;
-  padding: 1.5px;
+  padding: 2px;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.25),
@@ -94,6 +96,7 @@ defineProps<{
 
 .game-card.selected {
   z-index: 1;
+  overflow: visible;
   transform: scale(1.20);
   box-shadow:
     0 0 20px var(--color-glow),
@@ -101,7 +104,15 @@ defineProps<{
 }
 
 .game-card.selected::after {
-  opacity: 0.8;
+  background: conic-gradient(
+    from var(--border-angle),
+    var(--color-primary-light),
+    var(--color-accent),
+    var(--color-primary-dark),
+    var(--color-primary-light)
+  );
+  opacity: 1;
+  animation: plasma-rotate 2s linear infinite;
 }
 
 .game-card.selected .info {

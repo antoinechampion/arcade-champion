@@ -100,9 +100,9 @@ defineProps<{
 .arcade-btn::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   border-radius: inherit;
-  padding: 1.5px;
+  padding: 2px;
   background: conic-gradient(
     from 135deg,
     transparent 0%,
@@ -133,17 +133,16 @@ defineProps<{
 .arcade-btn:focus-visible::after,
 .arcade-btn:focus::after,
 .arcade-btn.focused::after {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.25),
+  background: conic-gradient(
+    from var(--border-angle),
     var(--color-primary-light),
     var(--color-accent),
-    rgba(255, 255, 255, 0.08),
     var(--color-primary-dark),
-    rgba(255, 255, 255, 0.2)
+    var(--color-primary-light)
   );
-  opacity: 0.8;
+  opacity: 1;
   filter: blur(0px);
+  animation: plasma-rotate 2s linear infinite;
 }
 
 .arcade-btn:focus-visible,

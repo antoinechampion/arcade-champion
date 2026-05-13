@@ -41,6 +41,18 @@
   initial-value: 50%;
 }
 
+@property --border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes plasma-rotate {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
 :root {
   --color-bg: #0a0a0f;
   --color-text: #e8e8f0;
