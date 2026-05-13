@@ -10,6 +10,14 @@ const props = defineProps<{
 const model = defineModel<string>()
 const inputRef = ref<HTMLInputElement | null>(null)
 
+const NAV_KEYS = new Set(['ArrowUp', 'ArrowDown', ' '])
+
+function onKeydown(e: KeyboardEvent) {
+  if (NAV_KEYS.has(e.key)) {
+    e.preventDefault()
+  }
+}
+
 watch(() => props.focused, (focused) => {
   if (focused) {
     inputRef.value?.focus()
@@ -28,6 +36,7 @@ watch(() => props.focused, (focused) => {
       type="text"
       :placeholder="placeholder"
       class="arcade-input"
+      @keydown="onKeydown"
     />
   </div>
 </template>
