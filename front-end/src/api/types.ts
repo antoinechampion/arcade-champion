@@ -5,11 +5,11 @@ export interface SteamConfig {
 }
 
 export interface FightcadeConfig {
-  romName: string
+  gameId: string
 }
 
 export interface MameConfig {
-  romPath: string
+  driverName: string
 }
 
 export type LaunchConfig = SteamConfig | FightcadeConfig | MameConfig

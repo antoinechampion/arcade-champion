@@ -18,8 +18,8 @@ const imageUrl = ref('')
 const bannerUrl = ref('')
 
 const steamAppId = ref('')
-const fightcadeRomName = ref('')
-const mameRomPath = ref('')
+const fightcadeGameId = ref('')
+const mameDriverName = ref('')
 
 const platforms: Platform[] = ['Steam', 'Fightcade', 'MAME']
 
@@ -36,15 +36,15 @@ onMounted(async () => {
   bannerUrl.value = game.bannerUrl ?? ''
 
   if (game.platform === 'Steam') steamAppId.value = (game.launchConfig as { appId: string }).appId
-  if (game.platform === 'Fightcade') fightcadeRomName.value = (game.launchConfig as { romName: string }).romName
-  if (game.platform === 'MAME') mameRomPath.value = (game.launchConfig as { romPath: string }).romPath
+  if (game.platform === 'Fightcade') fightcadeGameId.value = (game.launchConfig as { gameId: string }).gameId
+  if (game.platform === 'MAME') mameDriverName.value = (game.launchConfig as { driverName: string }).driverName
 })
 
 function buildLaunchConfig(): LaunchConfig {
   switch (platform.value) {
     case 'Steam': return { appId: steamAppId.value }
-    case 'Fightcade': return { romName: fightcadeRomName.value }
-    case 'MAME': return { romPath: mameRomPath.value }
+    case 'Fightcade': return { gameId: fightcadeGameId.value }
+    case 'MAME': return { driverName: mameDriverName.value }
   }
 }
 
@@ -91,13 +91,13 @@ async function save() {
         </label>
 
         <label v-if="platform === 'Fightcade'">
-          ROM Name
-          <input v-model="fightcadeRomName" type="text" placeholder="e.g. sfiii3n" required>
+          Game ID
+          <input v-model="fightcadeGameId" type="text" placeholder="e.g. sf2ce" required>
         </label>
 
         <label v-if="platform === 'MAME'">
-          ROM Path
-          <input v-model="mameRomPath" type="text" placeholder="e.g. /roms/mame/mvsc2.zip" required>
+          Driver Name
+          <input v-model="mameDriverName" type="text" placeholder="e.g. mvsc2" required>
         </label>
       </fieldset>
 
