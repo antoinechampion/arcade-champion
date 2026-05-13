@@ -1,15 +1,29 @@
 <script setup lang="ts">
-defineProps<{
+import { ref, watch } from 'vue'
+import { openKeyboard } from '@/api/client'
+
+const props = defineProps<{
   focused?: boolean
   placeholder?: string
 }>()
 
 const model = defineModel<string>()
+const inputRef = ref<HTMLInputElement | null>(null)
+
+watch(() => props.focused, (focused) => {
+  if (focused) {
+    inputRef.value?.focus()
+    openKeyboard()
+  } else {
+    inputRef.value?.blur()
+  }
+})
 </script>
 
 <template>
   <div class="arcade-input-wrapper plasma-border" :class="{ focused, 'plasma-border-active': focused }">
     <input
+      ref="inputRef"
       v-model="model"
       type="text"
       :placeholder="placeholder"

@@ -98,3 +98,7 @@ export async function fetchAllGames(query?: string): Promise<Game[]> {
   }
   return games
 }
+
+export async function openKeyboard(): Promise<void> {
+  // TODO: replace with actual backend call that spawns steam-osk
+}
