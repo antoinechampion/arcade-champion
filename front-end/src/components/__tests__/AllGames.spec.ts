@@ -46,7 +46,7 @@ describe('AllGames', () => {
 
   it('filters games when searching', async () => {
     const wrapper = await mountAllGames()
-    const input = wrapper.find('.search-input')
+    const input = wrapper.find('.arcade-input')
     await input.setValue('Alpha')
     await input.trigger('keydown', { key: 'Enter' })
     await flushPromises()
@@ -56,7 +56,7 @@ describe('AllGames', () => {
 
   it('shows empty state when no results', async () => {
     const wrapper = await mountAllGames()
-    const input = wrapper.find('.search-input')
+    const input = wrapper.find('.arcade-input')
     await input.setValue('zzzzz')
     await input.trigger('keydown', { key: 'Enter' })
     await flushPromises()

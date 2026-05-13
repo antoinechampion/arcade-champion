@@ -9,6 +9,7 @@ const props = defineProps<{
 }>()
 
 const selectedIndex = ref(0)
+const sectionRef = ref<HTMLElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 const translateX = ref(0)
 
@@ -32,6 +33,9 @@ const { active } = useComponentNavigation('recentlyPlayed', {
     }
     return false
   },
+  onEnter() {
+    sectionRef.value?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  },
 })
 
 function scrollToSelected() {
@@ -50,7 +54,7 @@ function scrollToSelected() {
 </script>
 
 <template>
-  <section class="recently-played-section py-6 px-12">
+  <section ref="sectionRef" class="recently-played-section py-6 px-12">
     <h2 class="text-lg font-bold mb-4 opacity-80 px-12">Recently Played</h2>
     <div class="recently-played-clip">
       <div ref="containerRef" class="recently-played-list" :style="listStyle">

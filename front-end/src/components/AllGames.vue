@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import GameCard from './GameCard.vue'
 import ArcadeButton from './ArcadeButton.vue'
+import ArcadeTextInput from './ArcadeTextInput.vue'
 import { fetchAllGames } from '@/api/client'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 import type { Game } from '@/api/types'
@@ -15,9 +16,15 @@ interface GameSection {
 
 const games = ref<Game[]>([])
 const searchQuery = ref('')
+const focusArea = ref<'search' | 'cards'>('search')
+const searchFocusIdx = ref(0)
 const currentSectionIdx = ref(0)
 const currentCardIdx = ref(0)
+const searchBarRef = ref<HTMLElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
+
+const searchInputFocused = computed(() => active.value && focusArea.value === 'search' && searchFocusIdx.value === 0)
+const searchButtonFocused = computed(() => active.value && focusArea.value === 'search' && searchFocusIdx.value === 1)
 
 const sections = computed<GameSection[]>(() => {
   const grouped: GameSection[] = []
@@ -34,7 +41,7 @@ const sections = computed<GameSection[]>(() => {
 })
 
 function isSelected(section: number, card: number) {
-  return active.value && currentSectionIdx.value === section && currentCardIdx.value === card
+  return active.value && focusArea.value === 'cards' && currentSectionIdx.value === section && currentCardIdx.value === card
 }
 
 function clampCard(section: number, card: number) {
@@ -53,7 +60,31 @@ async function search() {
   await nextTick()
 }
 
-function handleNav(command: NavCommand): boolean {
+function handleSearchNav(command: NavCommand): boolean {
+  switch (command) {
+    case 'right':
+      if (searchFocusIdx.value === 0) { searchFocusIdx.value = 1; return true }
+      return true
+    case 'left':
+      if (searchFocusIdx.value === 1) { searchFocusIdx.value = 0; return true }
+      return true
+    case 'down':
+      if (sections.value.length) {
+        focusArea.value = 'cards'
+        return true
+      }
+      return false
+    case 'up':
+      return false
+    case 'confirm':
+      if (searchFocusIdx.value === 1) { search(); return true }
+      return true
+    default:
+      return false
+  }
+}
+
+function handleCardsNav(command: NavCommand): boolean {
   if (!sections.value.length) return false
 
   const col = currentCardIdx.value % COLUMNS
@@ -97,21 +128,43 @@ function handleNav(command: NavCommand): boolean {
         currentCardIdx.value = clampCard(currentSectionIdx.value, lastRow * COLUMNS + col)
         return true
       }
-      return false
+      focusArea.value = 'search'
+      return true
     default:
       return false
   }
+}
+
+function handleNav(command: NavCommand): boolean {
+  return focusArea.value === 'search' ? handleSearchNav(command) : handleCardsNav(command)
 }
 
 const { active } = useComponentNavigation('allGames', {
   onCommand: handleNav,
   onEnter(from) {
     if (from === 'up') {
-      currentSectionIdx.value = 0
-      currentCardIdx.value = 0
+      focusArea.value = 'search'
+      searchFocusIdx.value = 0
     }
   },
 })
+
+function scrollToFocused() {
+  if (focusArea.value === 'search') {
+    searchBarRef.value?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    return
+  }
+  const container = containerRef.value
+  if (!container) return
+  const sectionEl = container.children[currentSectionIdx.value] as HTMLElement | undefined
+  if (!sectionEl) return
+  const grid = sectionEl.querySelector('.games-grid') as HTMLElement | null
+  if (!grid) return
+  const card = grid.children[currentCardIdx.value] as HTMLElement | undefined
+  card?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+}
+
+watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFocused)
 
 function onSearchKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') search()
@@ -120,17 +173,16 @@ function onSearchKeydown(e: KeyboardEvent) {
 
 <template>
   <section class="all-games-section py-6 px-12">
-    <div class="flex items-center justify-between px-12 mb-6">
+    <div ref="searchBarRef" class="flex items-center justify-between px-12 mb-6">
       <h2 class="text-lg font-bold opacity-80">All Games</h2>
       <div class="search-bar">
-      <input
+      <ArcadeTextInput
         v-model="searchQuery"
-        type="text"
         placeholder="Search games…"
-        class="search-input"
+        :focused="searchInputFocused"
         @keydown="onSearchKeydown"
       />
-      <ArcadeButton label="Search" @click="search" />
+      <ArcadeButton label="Search" :focused="searchButtonFocused" @click="search" />
       </div>
     </div>
 
@@ -166,32 +218,6 @@ function onSearchKeydown(e: KeyboardEvent) {
   align-items: center;
 }
 
-.search-input {
-  flex: 1;
-  max-width: 400px;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(24px);
-  color: var(--color-text);
-  font-size: 1rem;
-  font-family: inherit;
-  outline: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: box-shadow 0.3s ease;
-}
-
-.search-input::placeholder {
-  color: var(--color-text);
-  opacity: 0.4;
-}
-
-.search-input:focus {
-  box-shadow:
-    0 0 20px var(--color-glow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
 
 .games-grid {
   display: grid;

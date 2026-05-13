@@ -6,7 +6,7 @@ defineProps<{
 </script>
 
 <template>
-  <button class="arcade-btn" :class="[label ? 'has-label' : 'icon-only', { focused }]">
+  <button class="arcade-btn plasma-border" :class="[label ? 'has-label' : 'icon-only', { focused, 'plasma-border-active': focused }]">
     <span v-if="$slots.icon" class="icon">
       <slot name="icon" />
     </span>
@@ -16,7 +16,6 @@ defineProps<{
 
 <style scoped>
 .arcade-btn {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -94,55 +93,6 @@ defineProps<{
   --blob2-y: 40%;
   --blob3-x: 45%;
   --blob3-y: 75%;
-}
-
-/* Gradient border */
-.arcade-btn::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(
-    from 135deg,
-    transparent 0%,
-    var(--color-primary-light) 15%,
-    transparent 30%,
-    var(--color-accent) 50%,
-    transparent 65%,
-    var(--color-primary-dark) 80%,
-    transparent 100%
-  );
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  pointer-events: none;
-  opacity: 0.4;
-  filter: blur(2px);
-  transition:
-    opacity 0.3s ease,
-    filter 0.3s ease,
-    background 0.3s ease;
-}
-
-.arcade-btn:focus-visible::after,
-.arcade-btn:focus::after,
-.arcade-btn.focused::after {
-  background: conic-gradient(
-    from var(--border-angle),
-    var(--color-primary-light),
-    var(--color-accent),
-    var(--color-primary-dark),
-    var(--color-primary-light)
-  );
-  opacity: 1;
-  filter: blur(0px);
-  animation: plasma-rotate 2s linear infinite;
 }
 
 .arcade-btn:focus-visible,

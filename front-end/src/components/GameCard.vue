@@ -10,7 +10,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="game-card" :class="{ selected }">
+  <div class="game-card plasma-border" :class="{ selected, 'plasma-border-active': selected }">
     <img :src="imageUrl" :alt="title" class="card-img w-full h-full object-cover" />
     <div class="info">
       <span class="text-xs font-medium uppercase tracking-widest opacity-70">{{ platform }}</span>
@@ -22,7 +22,6 @@ defineProps<{
 
 <style scoped>
 .game-card {
-  position: relative;
   width: 200px;
   min-width: 200px;
   aspect-ratio: 3 / 4;
@@ -66,34 +65,6 @@ defineProps<{
     transform 0.3s ease;
 }
 
-.game-card::after {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 2px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.25),
-    var(--color-primary-light),
-    var(--color-accent),
-    rgba(255, 255, 255, 0.08),
-    var(--color-primary-dark),
-    rgba(255, 255, 255, 0.2)
-  );
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
 .game-card.selected {
   z-index: 1;
   overflow: visible;
@@ -101,18 +72,6 @@ defineProps<{
   box-shadow:
     0 0 20px var(--color-glow),
     0 0 40px rgba(124, 92, 224, 0.15);
-}
-
-.game-card.selected::after {
-  background: conic-gradient(
-    from var(--border-angle),
-    var(--color-primary-light),
-    var(--color-accent),
-    var(--color-primary-dark),
-    var(--color-primary-light)
-  );
-  opacity: 1;
-  animation: plasma-rotate 2s linear infinite;
 }
 
 .game-card.selected .info {

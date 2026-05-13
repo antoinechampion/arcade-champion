@@ -12,6 +12,7 @@ defineProps<{
 }>()
 
 const buttonRef = ref<InstanceType<typeof ArcadeButton> | null>(null)
+const sectionRef = ref<HTMLElement | null>(null)
 
 const { active } = useComponentNavigation('featured', {
   onCommand(command: NavCommand) {
@@ -21,11 +22,14 @@ const { active } = useComponentNavigation('featured', {
     }
     return false
   },
+  onEnter() {
+    sectionRef.value?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  },
 })
 </script>
 
 <template>
-  <section class="relative h-[60vh] overflow-hidden">
+  <section ref="sectionRef" class="relative h-[60vh] overflow-hidden">
     <div class="absolute inset-0">
       <img :src="bannerUrl" :alt="title" class="banner-img h-full object-cover w-[80%] ml-[30%]" />
     </div>

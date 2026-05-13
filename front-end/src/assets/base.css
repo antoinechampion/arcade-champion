@@ -1,6 +1,6 @@
 @font-face {
-  font-family: Capriola;
-  src: url('/Capriola-Regular.ttf') format('truetype');
+  font-family: Rubik;
+  src: url('/Rubik-VariableFont_wght.ttf') format('truetype');
   font-weight: 400;
   font-display: swap;
 }
@@ -76,6 +76,59 @@ body {
   min-height: 100vh;
   color: var(--color-text);
   background: var(--color-bg);
-  font-family: Capriola, system-ui, sans-serif;
+  font-family: Rubik, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.plasma-border {
+  position: relative;
+}
+
+.plasma-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from 135deg,
+    transparent 0%,
+    var(--color-primary-light) 15%,
+    transparent 30%,
+    var(--color-accent) 50%,
+    transparent 65%,
+    var(--color-primary-dark) 80%,
+    transparent 100%
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+  opacity: 0.4;
+  filter: blur(2px);
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease,
+    background 0.3s ease;
+}
+
+.plasma-border:focus::after,
+.plasma-border:focus-visible::after,
+.plasma-border:focus-within::after,
+.plasma-border.plasma-border-active::after {
+  background: conic-gradient(
+    from var(--border-angle),
+    var(--color-primary-light),
+    var(--color-accent),
+    var(--color-primary-dark),
+    var(--color-primary-light)
+  );
+  opacity: 1;
+  filter: blur(0px);
+  animation: plasma-rotate 2s linear infinite;
 }
