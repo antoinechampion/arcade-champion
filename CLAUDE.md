@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides on how to work with this repository.
+This file provides guidance on how to work with this repository.
 
 ## Project Overview
 
@@ -12,7 +12,7 @@ Arcade Champion powers homemade arcade machines running Bazzite OS. Three compon
 ## Tech Stack
 
 - **Front-end:** Vue 3 (Composition API) + TypeScript + Vite + Pinia. Tailwind CSS with semantic tokens. CSS variables for theming.
-- **Back-end:** Go
+- **Back-end:** Go + gorilla/mux
 - **Target platform:** Bazzite OS (Fedora Atomic-based, runs on x86_64 arcade cabinets)
 
 ## Commands
@@ -28,6 +28,20 @@ npm test             # run tests once
 npm run test:watch   # run tests in watch mode
 ```
 
+### Back-end (`back-end/`)
+
+```sh
+go build ./...       # build
+go test ./...        # run tests
+go run .             # start server on :8080
+```
+
+## API Conventions
+
+- All back-end routes live under `/api` (e.g. `/api/search`)
+- Front-end fetches `/api/*`; Vite dev proxy forwards to `localhost:8080`
+- JSON keys use camelCase (use struct tags: `json:"camelCase"`)
+
 ## Design Principles
 
 - KISS — simplest solution that works
@@ -42,6 +56,12 @@ npm run test:watch   # run tests in watch mode
 - Strict TypeScript — never use `any`
 - CSS variables for theming; prefer Tailwind semantic tokens
 - `@` alias maps to `front-end/src/`
+
+## Back-end Conventions
+
+- Platform interface pattern: each platform (Steam, Fightcade, MAME) implements `platform.Platform`
+- Factory function `platform.Get()` returns the implementation by name
+- Handlers in `handlers/`, platform logic in `platform/`
 
 ## Testing Philosophy
 
