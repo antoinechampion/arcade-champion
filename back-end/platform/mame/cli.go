@@ -13,12 +13,22 @@ type Game struct {
 	RomID string
 }
 
-func Search(mamePath, query string) ([]Game, error) {
-	out, err := exec.Command(mamePath, "-listfull").Output()
+func Search(mameCmd, query string) ([]Game, error) {
+	name, args := parseCommand(mameCmd)
+	args = append(args, "-listfull")
+	out, err := exec.Command(name, args...).Output()
 	if err != nil {
 		return nil, fmt.Errorf("mame -listfull: %w", err)
 	}
 	return parseListFull(out, query), nil
+}
+
+func parseCommand(cmd string) (string, []string) {
+	fields := strings.Fields(cmd)
+	if len(fields) == 0 {
+		return cmd, nil
+	}
+	return fields[0], fields[1:]
 }
 
 func parseListFull(output []byte, query string) []Game {

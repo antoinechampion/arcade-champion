@@ -4,6 +4,7 @@ import (
 	"back-end/database"
 	"back-end/platform"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -20,7 +21,8 @@ func SearchQueryHandler(db *database.DB) http.HandlerFunc {
 
 		results, err := p.Search(query)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("search platform=%s query=%q: %v", platformString, query, err)
+			http.Error(w, "search failed", http.StatusInternalServerError)
 			return
 		}
 

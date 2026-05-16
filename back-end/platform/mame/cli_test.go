@@ -45,3 +45,30 @@ func TestParseLineSkipsHeader(t *testing.T) {
 		t.Error("expected header line to be skipped")
 	}
 }
+
+func TestParseCommand(t *testing.T) {
+	tests := []struct {
+		input    string
+		wantName string
+		wantArgs []string
+	}{
+		{"/usr/bin/mame", "/usr/bin/mame", nil},
+		{"flatpak run org.mamedev.MAME", "flatpak", []string{"run", "org.mamedev.MAME"}},
+		{"  mame  ", "mame", nil},
+	}
+	for _, tt := range tests {
+		name, args := parseCommand(tt.input)
+		if name != tt.wantName {
+			t.Errorf("parseCommand(%q) name = %q, want %q", tt.input, name, tt.wantName)
+		}
+		if len(args) != len(tt.wantArgs) {
+			t.Errorf("parseCommand(%q) args = %v, want %v", tt.input, args, tt.wantArgs)
+			continue
+		}
+		for i := range args {
+			if args[i] != tt.wantArgs[i] {
+				t.Errorf("parseCommand(%q) args[%d] = %q, want %q", tt.input, i, args[i], tt.wantArgs[i])
+			}
+		}
+	}
+}
