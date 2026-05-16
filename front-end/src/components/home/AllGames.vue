@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
-import GameCard from '../design-system/GameCard.vue'
-import ArcadeButton from '../design-system/ArcadeButton.vue'
-import ArcadeTextInput from '../design-system/ArcadeTextInput.vue'
+import GameCard from '@/components/design-system/GameCard.vue'
+import ArcadeButton from '@/components/design-system/ArcadeButton.vue'
+import ArcadeTextInput from '@/components/design-system/ArcadeTextInput.vue'
 import { fetchAllGames } from '@/api/client'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 import type { Game } from '@/api/types'
