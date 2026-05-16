@@ -1,4 +1,4 @@
-import type { Game, PlatformSearchResult, Platform } from './types'
+import type { Game, PlatformSearchResult, Platform, Settings } from './types'
 
 const games: Game[] = [
   {
@@ -146,4 +146,20 @@ export async function searchPlatformGames(platform: Platform, query: string): Pr
   if (!res.ok) throw new Error(`Search failed: ${res.status}`)
   const data: BackendSearchResult[] = await res.json()
   return data.map((r) => ({ name: r.game, platformId: r.appId }))
+}
+
+export async function fetchSettings(): Promise<Settings> {
+  const res = await fetch('/api/settings')
+  if (!res.ok) throw new Error(`Failed to fetch settings: ${res.status}`)
+  return res.json()
+}
+
+export async function updateSettings(settings: Settings): Promise<Settings> {
+  const res = await fetch('/api/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  })
+  if (!res.ok) throw new Error(`Failed to update settings: ${res.status}`)
+  return res.json()
 }

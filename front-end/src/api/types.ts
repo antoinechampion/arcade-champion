@@ -29,3 +29,9 @@ export interface PlatformSearchResult {
   name: string
   platformId: string
 }
+
+export interface Settings {
+  fightcadeUsername: string
+  fightcadePassword: string
+  fightcadeCookie: string
+}

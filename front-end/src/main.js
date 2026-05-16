@@ -12,6 +12,7 @@ const router = createRouter({
     { path: '/backoffice', component: () => import('@/pages/BackOfficePage.vue') },
     { path: '/backoffice/add', component: () => import('@/pages/GameFormPage.vue') },
     { path: '/backoffice/edit/:id', component: () => import('@/pages/GameFormPage.vue') },
+    { path: '/backoffice/settings', component: () => import('@/pages/SettingsPage.vue') },
   ],
 })
 

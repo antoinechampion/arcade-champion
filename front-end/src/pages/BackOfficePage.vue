@@ -26,7 +26,10 @@ onMounted(loadGames)
 
     <div class="flex items-center justify-between mt-6 mb-6">
       <h1 class="text-2xl font-bold">Back Office</h1>
-      <RouterLink to="/backoffice/add" class="add-btn">+ Add Game</RouterLink>
+      <div class="flex items-center gap-3">
+        <RouterLink to="/backoffice/settings" class="settings-link">Settings</RouterLink>
+        <RouterLink to="/backoffice/add" class="add-btn">+ Add Game</RouterLink>
+      </div>
     </div>
 
     <table class="game-table">
@@ -68,6 +71,21 @@ onMounted(loadGames)
 
 .back-link:hover,
 .back-link:focus-visible {
+  opacity: 1;
+}
+
+.settings-link {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: var(--color-primary-light);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.settings-link:hover {
   opacity: 1;
 }
 
