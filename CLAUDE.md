@@ -15,27 +15,6 @@ Arcade Champion powers homemade arcade machines running Bazzite OS. Three compon
 - **Back-end:** Go + gorilla/mux
 - **Target platform:** Bazzite OS (Fedora Atomic-based, runs on x86_64 arcade cabinets)
 
-## Commands
-
-### Front-end (`front-end/`)
-
-```sh
-npm install          # install dependencies
-npm run dev          # dev server with hot reload
-npm run build        # production build
-npm run preview      # preview production build
-npm test             # run tests once
-npm run test:watch   # run tests in watch mode
-```
-
-### Back-end (`back-end/`)
-
-```sh
-go build ./...       # build
-go test ./...        # run tests
-go run .             # start server on :8080
-```
-
 ## API Conventions
 
 - All back-end routes live under `/api` (e.g. `/api/search`)
