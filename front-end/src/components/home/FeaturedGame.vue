@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import ArcadeButton from './ArcadeButton.vue'
+import ArcadeButton from '../design-system/ArcadeButton.vue'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 
 defineProps<{

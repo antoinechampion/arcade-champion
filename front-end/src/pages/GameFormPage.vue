@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import { fetchGame, createGame, updateGame } from '@/api/client'
+import { fetchGame, createGame, updateGame, searchPlatformGames } from '@/api/client'
 import type { Platform, LaunchConfig } from '@/api/types'
+import PlatformGameSearch from '@/components/backoffice/PlatformGameSearch.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -11,17 +12,25 @@ const editId = computed(() => route.params.id as string | undefined)
 const isEdit = computed(() => !!editId.value)
 
 const platform = ref<Platform>('Steam')
+const platformId = ref('')
 const title = ref('')
 const releaseYear = ref<number | undefined>()
 const developer = ref('')
 const imageUrl = ref('')
 const bannerUrl = ref('')
 
-const steamAppId = ref('')
-const fightcadeGameId = ref('')
-const mameDriverName = ref('')
-
 const platforms: Platform[] = ['Steam', 'Fightcade', 'MAME']
+
+const platformLabels: Record<Platform, { label: string; placeholder: string }> = {
+  Steam: { label: 'App ID', placeholder: 'Search Steam games…' },
+  Fightcade: { label: 'Game ID', placeholder: 'Search Fightcade games…' },
+  MAME: { label: 'Driver Name', placeholder: 'Search MAME games…' },
+}
+
+const currentLabel = computed(() => platformLabels[platform.value])
+const searchFn = computed(() => (q: string) => searchPlatformGames(platform.value, q))
+
+watch(platform, () => { platformId.value = '' })
 
 onMounted(async () => {
   if (!editId.value) return
@@ -35,16 +44,18 @@ onMounted(async () => {
   imageUrl.value = game.imageUrl
   bannerUrl.value = game.bannerUrl ?? ''
 
-  if (game.platform === 'Steam') steamAppId.value = (game.launchConfig as { appId: string }).appId
-  if (game.platform === 'Fightcade') fightcadeGameId.value = (game.launchConfig as { gameId: string }).gameId
-  if (game.platform === 'MAME') mameDriverName.value = (game.launchConfig as { driverName: string }).driverName
+  await nextTick()
+
+  if ('appId' in game.launchConfig) platformId.value = game.launchConfig.appId
+  if ('gameId' in game.launchConfig) platformId.value = game.launchConfig.gameId
+  if ('driverName' in game.launchConfig) platformId.value = game.launchConfig.driverName
 })
 
 function buildLaunchConfig(): LaunchConfig {
   switch (platform.value) {
-    case 'Steam': return { appId: steamAppId.value }
-    case 'Fightcade': return { gameId: fightcadeGameId.value }
-    case 'MAME': return { driverName: mameDriverName.value }
+    case 'Steam': return { appId: platformId.value }
+    case 'Fightcade': return { gameId: platformId.value }
+    case 'MAME': return { driverName: platformId.value }
   }
 }
 
@@ -85,19 +96,14 @@ async function save() {
           </select>
         </label>
 
-        <label v-if="platform === 'Steam'">
-          App ID
-          <input v-model="steamAppId" type="text" placeholder="e.g. 1364780" required>
-        </label>
-
-        <label v-if="platform === 'Fightcade'">
-          Game ID
-          <input v-model="fightcadeGameId" type="text" placeholder="e.g. sf2ce" required>
-        </label>
-
-        <label v-if="platform === 'MAME'">
-          Driver Name
-          <input v-model="mameDriverName" type="text" placeholder="e.g. mvsc2" required>
+        <label>
+          {{ currentLabel.label }}
+          <PlatformGameSearch
+            :key="platform"
+            v-model="platformId"
+            :search="searchFn"
+            :placeholder="currentLabel.placeholder"
+          />
         </label>
       </fieldset>
 

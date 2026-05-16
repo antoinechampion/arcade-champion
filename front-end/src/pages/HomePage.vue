@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import FeaturedGame from '@/components/FeaturedGame.vue'
-import RecentlyPlayed from '@/components/RecentlyPlayed.vue'
-import AllGames from '@/components/AllGames.vue'
+import FeaturedGame from '@/components/home/FeaturedGame.vue'
+import RecentlyPlayed from '@/components/home/RecentlyPlayed.vue'
+import AllGames from '@/components/home/AllGames.vue'
 import { fetchRecentlyPlayed } from '@/api/client'
 import { usePageNavigation } from '@/composables/navigation'
 import type { Game } from '@/api/types'

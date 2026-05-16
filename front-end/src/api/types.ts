@@ -24,3 +24,8 @@ export interface Game {
   bannerUrl?: string
   launchConfig: LaunchConfig
 }
+
+export interface PlatformSearchResult {
+  name: string
+  platformId: string
+}
