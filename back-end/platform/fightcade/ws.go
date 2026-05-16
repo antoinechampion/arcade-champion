@@ -51,12 +51,13 @@ func (c *wsClient) on(event string, handler eventHandler) {
 
 func (c *wsClient) sendCmd(ctx context.Context, payload map[string]any) (map[string]any, error) {
 	idx := c.requestIdx.Add(1) - 1
-	payload["requestIdx"] = idx
+	msg := copyPayload(payload)
+	msg["requestIdx"] = idx
 	ch := make(chan map[string]any, 1)
 	c.pending.Store(idx, ch)
 	defer c.pending.Delete(idx)
 
-	data, err := json.Marshal(payload)
+	data, err := json.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -75,12 +76,21 @@ func (c *wsClient) sendCmd(ctx context.Context, payload map[string]any) (map[str
 }
 
 func (c *wsClient) sendFire(payload map[string]any) error {
-	payload["requestIdx"] = -1
-	data, err := json.Marshal(payload)
+	msg := copyPayload(payload)
+	msg["requestIdx"] = -1
+	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
 	return c.conn.WriteMessage(websocket.TextMessage, data)
+}
+
+func copyPayload(src map[string]any) map[string]any {
+	dst := make(map[string]any, len(src)+1)
+	for k, v := range src {
+		dst[k] = v
+	}
+	return dst
 }
 
 func (c *wsClient) recvLoop() {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -76,7 +77,7 @@ func Login(ctx context.Context, creds Credentials) (string, error) {
 	}
 	defer client.close()
 
-	resp, err := client.login(ctx, creds.Username, creds.Password)
+	resp, err := authenticate(ctx, client, creds)
 	if err != nil {
 		return "", err
 	}
@@ -252,6 +253,7 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 
 	matchCh := make(chan *MatchEvent, 1)
 	challenged := make(chan struct{})
+	var closeOnce sync.Once
 
 	client.on("start", func(msg map[string]any) {
 		userObj, _ := msg["user"].(map[string]any)
@@ -305,6 +307,21 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 		challengeID := 1
 		tried := map[string]bool{}
 
+		acceptCh := make(chan bool, 1)
+		client.on("accept", func(msg map[string]any) {
+			closeOnce.Do(func() { close(challenged) })
+			select {
+			case acceptCh <- true:
+			default:
+			}
+		})
+		client.on("reject", func(msg map[string]any) {
+			select {
+			case acceptCh <- false:
+			default:
+			}
+		})
+
 		for {
 			var target *LobbyUser
 			for i := range candidates {
@@ -314,35 +331,23 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 				}
 			}
 
-			if target != nil {
-				tried[target.Name] = true
-				resp, err := client.challengeUser(ctx, target.Name, channelname, challengeID, isRanked)
-				challengeID++
-				if err == nil && isSuccess(resp) {
-					acceptCh := make(chan bool, 1)
-					client.on("accept", func(msg map[string]any) {
-						close(challenged)
-						acceptCh <- true
-					})
-					client.on("reject", func(msg map[string]any) {
-						acceptCh <- false
-					})
-					select {
-					case accepted := <-acceptCh:
-						if accepted {
-							return
-						}
-					case <-time.After(retryDelay):
-					case <-ctx.Done():
-						return
-					}
-				}
+			if target == nil {
+				return
 			}
 
-			select {
-			case <-time.After(retryDelay):
-			case <-ctx.Done():
-				return
+			tried[target.Name] = true
+			resp, err := client.challengeUser(ctx, target.Name, channelname, challengeID, isRanked)
+			challengeID++
+			if err == nil && isSuccess(resp) {
+				select {
+				case accepted := <-acceptCh:
+					if accepted {
+						return
+					}
+				case <-time.After(retryDelay):
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
 	}()
