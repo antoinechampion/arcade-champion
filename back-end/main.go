@@ -17,7 +17,7 @@ func main() {
 	defer db.Close()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/api/search", handlers.SearchQueryHandler).
+	r.HandleFunc("/api/search", handlers.SearchQueryHandler(db)).
 		Methods("GET")
 	r.HandleFunc("/api/settings", handlers.SettingsHandler(db)).
 		Methods("GET", "PUT")

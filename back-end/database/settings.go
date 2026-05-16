@@ -19,10 +19,29 @@ func (d *DB) setSetting(key, value string) error {
 	return err
 }
 
-func (d *DB) FightcadeCookie() (string, error)   { return d.getSetting("fightcade.cookie") }
-func (d *DB) FightcadeUsername() (string, error)  { return d.getSetting("fightcade.username") }
-func (d *DB) FightcadePassword() (string, error)  { return d.getSetting("fightcade.password") }
+func (d *DB) getEncryptedSetting(key string) (string, error) {
+	encrypted, err := d.getSetting(key)
+	if err != nil || encrypted == "" {
+		return "", err
+	}
+	return decrypt(encrypted)
+}
 
-func (d *DB) SetFightcadeCookie(v string) error   { return d.setSetting("fightcade.cookie", v) }
-func (d *DB) SetFightcadeUsername(v string) error  { return d.setSetting("fightcade.username", v) }
-func (d *DB) SetFightcadePassword(v string) error  { return d.setSetting("fightcade.password", v) }
+func (d *DB) setEncryptedSetting(key, value string) error {
+	if value == "" {
+		return d.setSetting(key, "")
+	}
+	encrypted, err := encrypt(value)
+	if err != nil {
+		return err
+	}
+	return d.setSetting(key, encrypted)
+}
+
+func (d *DB) FightcadeCookie() (string, error)  { return d.getEncryptedSetting("fightcade.cookie") }
+func (d *DB) FightcadeUsername() (string, error) { return d.getSetting("fightcade.username") }
+func (d *DB) FightcadePassword() (string, error) { return d.getEncryptedSetting("fightcade.password") }
+
+func (d *DB) SetFightcadeCookie(v string) error  { return d.setEncryptedSetting("fightcade.cookie", v) }
+func (d *DB) SetFightcadeUsername(v string) error { return d.setSetting("fightcade.username", v) }
+func (d *DB) SetFightcadePassword(v string) error { return d.setEncryptedSetting("fightcade.password", v) }

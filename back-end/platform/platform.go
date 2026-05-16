@@ -1,5 +1,7 @@
 package platform
 
+import "back-end/database"
+
 type Platform interface {
 	Search(query string) ([]SearchResult, error)
 	Launch(appId string) error
@@ -10,12 +12,12 @@ type SearchResult struct {
 	AppID string `json:"appId"`
 }
 
-func Get(platformName string) Platform {
+func Get(platformName string, db *database.DB) Platform {
 	switch platformName {
 	case "steam":
 		return Steam{}
 	case "fightcade":
-		return Fightcade{}
+		return Fightcade{db: db}
 	case "mame":
 		return Mame{}
 	}

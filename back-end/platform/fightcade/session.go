@@ -92,24 +92,31 @@ func Login(ctx context.Context, creds Credentials) (string, error) {
 	return cookie, nil
 }
 
-func Search(ctx context.Context, creds Credentials, query string) ([]Channel, error) {
+type SearchResult struct {
+	Channels []Channel
+	Cookie   string
+}
+
+func Search(ctx context.Context, creds Credentials, query string) (SearchResult, error) {
 	client, err := connect(ctx)
 	if err != nil {
-		return nil, err
+		return SearchResult{}, err
 	}
 	defer client.close()
 
 	resp, err := authenticate(ctx, client, creds)
 	if err != nil {
-		return nil, err
+		return SearchResult{}, err
 	}
 	if !isSuccess(resp) {
-		return nil, fmt.Errorf("login failed: %v", resp["error"])
+		return SearchResult{}, fmt.Errorf("login failed: %v", resp["error"])
 	}
+
+	cookie, _ := resp["cookie"].(string)
 
 	result, err := client.searchChannels(ctx, query, 0)
 	if err != nil {
-		return nil, err
+		return SearchResult{}, err
 	}
 
 	raw, _ := result["channels"].([]any)
@@ -132,7 +139,7 @@ func Search(ctx context.Context, creds Credentials, query string) ([]Channel, er
 			Ranked:   ranked,
 		})
 	}
-	return channels, nil
+	return SearchResult{Channels: channels, Cookie: cookie}, nil
 }
 
 func resolveChannel(ctx context.Context, client *wsClient, game string) (string, error) {
