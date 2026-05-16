@@ -32,5 +32,12 @@ func (m Mame) Search(query string) ([]SearchResult, error) {
 }
 
 func (m Mame) Launch(appId string) error {
-	panic("implement me")
+	mamePath, err := m.db.MamePath()
+	if err != nil {
+		return err
+	}
+	if mamePath == "" {
+		return fmt.Errorf("mame path not configured")
+	}
+	return mame.Launch(mamePath, appId)
 }
