@@ -10,7 +10,7 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/search", handlers.SearchQueryHandler).
+	r.HandleFunc("/api/search", handlers.SearchQueryHandler).
 		Methods("GET")
 
 	http.Handle("/", r)

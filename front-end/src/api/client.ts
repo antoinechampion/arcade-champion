@@ -135,76 +135,15 @@ export async function openKeyboard(): Promise<void> {
   // TODO: replace with actual backend call that spawns steam-osk
 }
 
-const platformCatalog: Record<Platform, PlatformSearchResult[]> = {
-  Steam: [
-    { name: 'Street Fighter 6', platformId: '1364780' },
-    { name: 'Street Fighter V', platformId: '310950' },
-    { name: 'Street Fighter 30th Anniversary Collection', platformId: '586200' },
-    { name: 'Guilty Gear Strive', platformId: '1384160' },
-    { name: 'Guilty Gear Xrd REV 2', platformId: '520440' },
-    { name: 'Tekken 8', platformId: '1778820' },
-    { name: 'Tekken 7', platformId: '389730' },
-    { name: 'Dragon Ball FighterZ', platformId: '678950' },
-    { name: 'Mortal Kombat 1', platformId: '1971870' },
-    { name: 'Mortal Kombat 11', platformId: '976310' },
-    { name: 'The King of Fighters XV', platformId: '1498570' },
-    { name: 'Under Night In-Birth II', platformId: '1797580' },
-    { name: 'Blazblue Centralfiction', platformId: '586140' },
-    { name: 'Granblue Fantasy Versus Rising', platformId: '2157560' },
-    { name: 'DNF Duel', platformId: '1216060' },
-    { name: 'Them\'s Fightin\' Herds', platformId: '574980' },
-    { name: 'Rivals of Aether II', platformId: '2217000' },
-    { name: 'Melty Blood Type Lumina', platformId: '1372280' },
-    { name: 'Skullgirls 2nd Encore', platformId: '245170' },
-    { name: 'Brawlhalla', platformId: '291550' },
-  ],
-  Fightcade: [
-    { name: 'Street Fighter III: 3rd Strike', platformId: 'sfiii3n' },
-    { name: 'Street Fighter II: Champion Edition', platformId: 'sf2ce' },
-    { name: 'Street Fighter Alpha 3', platformId: 'sfa3' },
-    { name: 'Super Street Fighter II Turbo', platformId: 'ssf2t' },
-    { name: 'Hyper Street Fighter II', platformId: 'hsf2' },
-    { name: 'King of Fighters 98', platformId: 'kof98' },
-    { name: 'King of Fighters 2002', platformId: 'kof2002' },
-    { name: 'King of Fighters 97', platformId: 'kof97' },
-    { name: 'Garou: Mark of the Wolves', platformId: 'garou' },
-    { name: 'Real Bout Fatal Fury 2', platformId: 'rbff2' },
-    { name: 'Samurai Shodown V Special', platformId: 'samsh5sp' },
-    { name: 'Samurai Shodown II', platformId: 'samsho2' },
-    { name: 'JoJo\'s Bizarre Adventure: Heritage for the Future', platformId: 'jojoban' },
-    { name: 'Vampire Savior', platformId: 'vsav' },
-    { name: 'Marvel vs Capcom: Clash of Super Heroes', platformId: 'mvsc' },
-    { name: 'X-Men vs Street Fighter', platformId: 'xmvsf' },
-    { name: 'Capcom vs SNK 2', platformId: 'cvs2' },
-    { name: 'Metal Slug 3', platformId: 'mslug3' },
-    { name: 'Windjammers', platformId: 'wjammers' },
-    { name: 'Puzzle Bobble', platformId: 'pbobblen' },
-  ],
-  MAME: [
-    { name: 'Marvel vs Capcom 2', platformId: 'mvsc2' },
-    { name: 'Street Fighter III: 3rd Strike', platformId: 'sfiii3' },
-    { name: 'Metal Slug 3', platformId: 'mslug3' },
-    { name: 'Metal Slug X', platformId: 'mslugx' },
-    { name: 'Metal Slug', platformId: 'mslug' },
-    { name: 'King of Fighters 2002', platformId: 'kof2002' },
-    { name: 'Garou: Mark of the Wolves', platformId: 'garou' },
-    { name: 'Pac-Man', platformId: 'pacman' },
-    { name: 'Donkey Kong', platformId: 'dkong' },
-    { name: 'Galaga', platformId: 'galaga' },
-    { name: 'Space Invaders', platformId: 'invaders' },
-    { name: 'Bubble Bobble', platformId: 'bublbobl' },
-    { name: 'Mortal Kombat II', platformId: 'mk2' },
-    { name: 'NBA Jam', platformId: 'nbajam' },
-    { name: 'Teenage Mutant Ninja Turtles', platformId: 'tmnt' },
-    { name: 'The Simpsons', platformId: 'simpsons' },
-    { name: 'X-Men', platformId: 'xmen' },
-    { name: 'Sunset Riders', platformId: 'ssriders' },
-    { name: 'Cadillacs and Dinosaurs', platformId: 'dino' },
-    { name: 'Dungeons & Dragons: Shadow over Mystara', platformId: 'ddsom' },
-  ],
+interface BackendSearchResult {
+  game: string
+  appId: string
 }
 
 export async function searchPlatformGames(platform: Platform, query: string): Promise<PlatformSearchResult[]> {
-  const q = query.toLowerCase()
-  return platformCatalog[platform].filter((g) => g.name.toLowerCase().includes(q) || g.platformId.toLowerCase().includes(q))
+  const params = new URLSearchParams({ platform: platform.toLowerCase(), query })
+  const res = await fetch(`/api/search?${params}`)
+  if (!res.ok) throw new Error(`Search failed: ${res.status}`)
+  const data: BackendSearchResult[] = await res.json()
+  return data.map((r) => ({ name: r.game, platformId: r.appId }))
 }

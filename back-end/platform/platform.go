@@ -6,7 +6,8 @@ type Platform interface {
 }
 
 type SearchResult struct {
-	Game, AppID string
+	Game  string `json:"game"`
+	AppID string `json:"appId"`
 }
 
 func Get(platformName string) Platform {
