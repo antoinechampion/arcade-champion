@@ -10,6 +10,7 @@ type settings struct {
 	FightcadeUsername string `json:"fightcadeUsername"`
 	FightcadePassword string `json:"fightcadePassword"`
 	FightcadeCookie   string `json:"fightcadeCookie"`
+	MamePath          string `json:"mamePath"`
 }
 
 func SettingsHandler(db *database.DB) http.HandlerFunc {
@@ -39,12 +40,18 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	mamePath, err := db.MamePath()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(settings{
 		FightcadeUsername: username,
 		FightcadePassword: password,
 		FightcadeCookie:   cookie,
+		MamePath:          mamePath,
 	})
 }
 
@@ -64,6 +71,10 @@ func putSettings(db *database.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := db.SetFightcadeCookie(s.FightcadeCookie); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := db.SetMamePath(s.MamePath); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

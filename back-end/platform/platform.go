@@ -19,7 +19,7 @@ func Get(platformName string, db *database.DB) Platform {
 	case "fightcade":
 		return Fightcade{db: db}
 	case "mame":
-		return Mame{}
+		return Mame{db: db}
 	}
 	return nil
 }

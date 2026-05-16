@@ -45,3 +45,6 @@ func (d *DB) FightcadePassword() (string, error) { return d.getEncryptedSetting(
 func (d *DB) SetFightcadeCookie(v string) error  { return d.setEncryptedSetting("fightcade.cookie", v) }
 func (d *DB) SetFightcadeUsername(v string) error { return d.setSetting("fightcade.username", v) }
 func (d *DB) SetFightcadePassword(v string) error { return d.setEncryptedSetting("fightcade.password", v) }
+
+func (d *DB) MamePath() (string, error)    { return d.getSetting("mame.path") }
+func (d *DB) SetMamePath(v string) error   { return d.setSetting("mame.path", v) }

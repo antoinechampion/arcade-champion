@@ -8,12 +8,14 @@ const router = useRouter()
 const fightcadeUsername = ref('')
 const fightcadePassword = ref('')
 const fightcadeCookie = ref('')
+const mamePath = ref('')
 
 onMounted(async () => {
   const s = await fetchSettings()
   fightcadeUsername.value = s.fightcadeUsername
   fightcadePassword.value = s.fightcadePassword
   fightcadeCookie.value = s.fightcadeCookie
+  mamePath.value = s.mamePath
 })
 
 async function save() {
@@ -21,6 +23,7 @@ async function save() {
     fightcadeUsername: fightcadeUsername.value,
     fightcadePassword: fightcadePassword.value,
     fightcadeCookie: fightcadeCookie.value,
+    mamePath: mamePath.value,
   })
   router.push('/backoffice')
 }
@@ -48,6 +51,15 @@ async function save() {
         <label>
           Cookie
           <input v-model="fightcadeCookie" type="text" placeholder="Session cookie">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>MAME</legend>
+
+        <label>
+          Executable Path
+          <input v-model="mamePath" type="text" placeholder="/usr/bin/mame">
         </label>
       </fieldset>
 

@@ -1,0 +1,47 @@
+package mame
+
+import (
+	"testing"
+)
+
+var sampleOutput = `Name:             Description:
+sf                "Street Fighter (US, set 1)"
+sf2               "Street Fighter II: The World Warrior (World 910522)"
+sf2ce             "Street Fighter II': Champion Edition (World 920513)"
+sfiii3            "Street Fighter III 3rd Strike: Fight for the Future (Europe 990608)"
+garou             "Garou: Mark of the Wolves (NGM-2530)"
+`
+
+func TestParseListFull(t *testing.T) {
+	games := parseListFull([]byte(sampleOutput), "street fighter")
+	if len(games) != 4 {
+		t.Fatalf("expected 4 results, got %d", len(games))
+	}
+	if games[0].RomID != "sf" || games[0].Name != "Street Fighter (US, set 1)" {
+		t.Errorf("unexpected first result: %+v", games[0])
+	}
+}
+
+func TestParseListFullCaseInsensitive(t *testing.T) {
+	games := parseListFull([]byte(sampleOutput), "GAROU")
+	if len(games) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(games))
+	}
+	if games[0].RomID != "garou" {
+		t.Errorf("expected garou, got %s", games[0].RomID)
+	}
+}
+
+func TestParseListFullNoMatch(t *testing.T) {
+	games := parseListFull([]byte(sampleOutput), "tekken")
+	if len(games) != 0 {
+		t.Fatalf("expected 0 results, got %d", len(games))
+	}
+}
+
+func TestParseLineSkipsHeader(t *testing.T) {
+	_, _, ok := parseLine("Name:             Description:")
+	if ok {
+		t.Error("expected header line to be skipped")
+	}
+}

@@ -1,15 +1,36 @@
 package platform
 
-type Mame struct{}
+import (
+	"back-end/database"
+	"back-end/platform/mame"
+	"fmt"
+)
 
-func (s Mame) Search(query string) ([]SearchResult, error) {
-	results := make([]SearchResult, 2)
-	results[0] = SearchResult{Game: "Street Fighter 2: Champion Edition", AppID: "sf2ce"}
-	results[1] = SearchResult{Game: "Garou: Mark of the Wolves", AppID: "garou"}
+type Mame struct {
+	db *database.DB
+}
+
+func (m Mame) Search(query string) ([]SearchResult, error) {
+	mamePath, err := m.db.MamePath()
+	if err != nil {
+		return nil, err
+	}
+	if mamePath == "" {
+		return nil, fmt.Errorf("mame path not configured")
+	}
+
+	games, err := mame.Search(mamePath, query)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]SearchResult, len(games))
+	for i, g := range games {
+		results[i] = SearchResult{Game: g.Name, AppID: g.RomID}
+	}
 	return results, nil
 }
 
-func (s Mame) Launch(appId string) error {
-	//TODO implement me
+func (m Mame) Launch(appId string) error {
 	panic("implement me")
 }
