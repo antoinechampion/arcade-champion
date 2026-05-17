@@ -13,12 +13,6 @@ type Game struct {
 	RomID string
 }
 
-func Launch(mameCmd, romID string) error {
-	name, args := parseCommand(mameCmd)
-	args = append(args, romID+".zip")
-	return exec.Command(name, args...).Start()
-}
-
 func Search(mameCmd, query string) ([]Game, error) {
 	name, args := parseCommand(mameCmd)
 	args = append(args, "-listfull")
