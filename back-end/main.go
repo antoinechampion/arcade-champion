@@ -21,6 +21,8 @@ func main() {
 		Methods("GET")
 	r.HandleFunc("/api/settings", handlers.SettingsHandler(db)).
 		Methods("GET", "PUT")
+	r.HandleFunc("/api/launch", handlers.LaunchGameHandler(db)).
+		Methods("POST")
 
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)

@@ -4,7 +4,7 @@ import "back-end/database"
 
 type Platform interface {
 	Search(query string) ([]SearchResult, error)
-	Launch(appId string) error
+	Launch(game database.Game) error
 }
 
 type SearchResult struct {

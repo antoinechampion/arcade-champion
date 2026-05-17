@@ -1,5 +1,7 @@
 package platform
 
+import "back-end/database"
+
 type Steam struct{}
 
 func (s Steam) Search(query string) ([]SearchResult, error) {
@@ -9,7 +11,7 @@ func (s Steam) Search(query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func (s Steam) Launch(appId string) error {
+func (s Steam) Launch(game database.Game) error {
 	//TODO implement me
 	panic("implement me")
 }

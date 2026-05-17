@@ -23,7 +23,7 @@ func TestGamesCRUD(t *testing.T) {
 		Developer:   "Capcom",
 		ImageURL:    "https://example.com/sf2.jpg",
 		BannerURL:   &banner,
-		PlatformID:  "sfii",
+		AppID:       "sfii",
 	}
 
 	created, err := db.CreateGame(game)
@@ -38,7 +38,7 @@ func TestGamesCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.Title != "Street Fighter II" || got.PlatformID != "sfii" || *got.BannerURL != banner {
+	if got.Title != "Street Fighter II" || got.AppID != "sfii" || *got.BannerURL != banner {
 		t.Fatalf("unexpected game: %+v", got)
 	}
 
@@ -94,7 +94,7 @@ func TestGameNullBanner(t *testing.T) {
 		ReleaseYear: 1980,
 		Developer:   "Namco",
 		ImageURL:    "https://example.com/pacman.jpg",
-		PlatformID:  "pacman",
+		AppID:       "pacman",
 	}
 
 	created, err := db.CreateGame(game)

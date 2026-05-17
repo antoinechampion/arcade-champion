@@ -60,6 +60,6 @@ func (f Fightcade) Search(query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func (f Fightcade) Launch(appId string) error {
+func (f Fightcade) Launch(game database.Game) error {
 	panic("implement me")
 }

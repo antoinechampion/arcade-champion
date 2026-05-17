@@ -31,7 +31,7 @@ func (m Mame) Search(query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func (m Mame) Launch(appId string) error {
+func (m Mame) Launch(game database.Game) error {
 	mamePath, err := m.db.MamePath()
 	if err != nil {
 		return err
@@ -39,5 +39,10 @@ func (m Mame) Launch(appId string) error {
 	if mamePath == "" {
 		return fmt.Errorf("mame path not configured")
 	}
-	return mame.Launch(mamePath, appId)
+
+	err = mame.Launch(mamePath, game.AppID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS games (
     developer    TEXT    NOT NULL,
     image_url    TEXT    NOT NULL,
     banner_url   TEXT,
-    platform_id  TEXT    NOT NULL,
+    app_id  TEXT    NOT NULL,
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP
 );

@@ -29,6 +29,16 @@ func Search(mameCmd, query string) ([]Game, error) {
 	return parseListFull(out, query), nil
 }
 
+func Launch(mameCmd, appId string) error {
+	name, args := parseCommand(mameCmd)
+	args = append(args, appId+".zip")
+	cmd := exec.Command(name, args...)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to launch mame game %s: %w", appId, err)
+	}
+	return nil
+}
+
 func parseCommand(cmd string) (string, []string) {
 	fields := strings.Fields(cmd)
 	if len(fields) == 0 {
