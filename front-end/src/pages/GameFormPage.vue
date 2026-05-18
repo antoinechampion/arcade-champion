@@ -2,8 +2,9 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { fetchGame, createGame, updateGame, searchPlatformGames } from '@/api/client'
-import type { Platform, LaunchConfig } from '@/api/types'
+import type { Platform, LaunchConfig, GameInput } from '@/api/types'
 import PlatformGameSearch from '@/components/backoffice/PlatformGameSearch.vue'
+import ImageCropper from '@/components/backoffice/ImageCropper.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -16,8 +17,10 @@ const platformId = ref('')
 const title = ref('')
 const releaseYear = ref<number | undefined>()
 const developer = ref('')
-const imageUrl = ref('')
-const bannerUrl = ref('')
+const coverSourceUrl = ref('')
+const bannerSourceUrl = ref('')
+const coverData = ref('')
+const bannerData = ref('')
 
 const platforms: Platform[] = ['Steam', 'Fightcade', 'MAME']
 
@@ -41,8 +44,10 @@ onMounted(async () => {
   title.value = game.title
   releaseYear.value = game.releaseYear
   developer.value = game.developer
-  imageUrl.value = game.imageUrl
-  bannerUrl.value = game.bannerUrl ?? ''
+  coverSourceUrl.value = game.imageUrl
+  bannerSourceUrl.value = game.bannerUrl
+  coverData.value = game.imageUrl
+  bannerData.value = game.bannerUrl
 
   await nextTick()
 
@@ -59,21 +64,30 @@ function buildLaunchConfig(): LaunchConfig {
   }
 }
 
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64] = dataUrl.split(',')
+  const mime = header.match(/:(.*?);/)![1]
+  const bytes = atob(base64)
+  const buffer = new Uint8Array(bytes.length)
+  for (let i = 0; i < bytes.length; i++) buffer[i] = bytes.charCodeAt(i)
+  return new Blob([buffer], { type: mime })
+}
+
 async function save() {
-  const data = {
+  const input: GameInput = {
     title: title.value,
     platform: platform.value,
     releaseYear: releaseYear.value ?? 0,
     developer: developer.value,
-    imageUrl: imageUrl.value,
-    bannerUrl: bannerUrl.value || undefined,
     launchConfig: buildLaunchConfig(),
+    cover: dataUrlToBlob(coverData.value),
+    banner: dataUrlToBlob(bannerData.value),
   }
 
   if (isEdit.value) {
-    await updateGame(editId.value!, data)
+    await updateGame(editId.value!, input)
   } else {
-    await createGame(data)
+    await createGame(input)
   }
 
   router.push('/backoffice')
@@ -127,13 +141,27 @@ async function save() {
 
         <label>
           Cover Image URL
-          <input v-model="imageUrl" type="url" placeholder="https://..." required>
+          <input v-model="coverSourceUrl" type="url" placeholder="https://..." required>
         </label>
+        <ImageCropper
+          v-if="coverSourceUrl"
+          :url="coverSourceUrl"
+          :frame-width="200"
+          :frame-height="267"
+          @cropped="coverData = $event"
+        />
 
         <label>
-          Banner Image URL (optional)
-          <input v-model="bannerUrl" type="url" placeholder="https://...">
+          Banner Image URL
+          <input v-model="bannerSourceUrl" type="url" placeholder="https://..." required>
         </label>
+        <ImageCropper
+          v-if="bannerSourceUrl"
+          :url="bannerSourceUrl"
+          :frame-width="640"
+          :frame-height="360"
+          @cropped="bannerData = $event"
+        />
       </fieldset>
 
       <div class="form-actions">
@@ -159,7 +187,7 @@ async function save() {
 }
 
 .game-form {
-  max-width: 480px;
+  max-width: 680px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

@@ -27,7 +27,7 @@ const recentGames = computed(() => games.value.slice(1))
     :platform="featuredGame.platform"
     :release-year="featuredGame.releaseYear"
     :developer="featuredGame.developer"
-    :banner-url="featuredGame.bannerUrl ?? featuredGame.imageUrl"
+    :banner-url="featuredGame.bannerUrl"
   />
 
   <RecentlyPlayed :games="recentGames" />

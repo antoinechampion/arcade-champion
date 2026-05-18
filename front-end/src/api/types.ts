@@ -21,8 +21,18 @@ export interface Game {
   releaseYear: number
   developer: string
   imageUrl: string
-  bannerUrl?: string
+  bannerUrl: string
   launchConfig: LaunchConfig
+}
+
+export interface GameInput {
+  title: string
+  platform: Platform
+  releaseYear: number
+  developer: string
+  launchConfig: LaunchConfig
+  cover: Blob
+  banner: Blob
 }
 
 export interface PlatformSearchResult {
