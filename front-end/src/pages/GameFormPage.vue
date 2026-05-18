@@ -33,14 +33,17 @@ const platformLabels: Record<Platform, { label: string; placeholder: string }> =
 const currentLabel = computed(() => platformLabels[platform.value])
 const searchFn = computed(() => (q: string) => searchPlatformGames(platform.value, q))
 
-watch(platform, () => { platformId.value = '' })
+let loading = true
+
+watch(platform, () => { if (!loading) platformId.value = '' })
 
 onMounted(async () => {
-  if (!editId.value) return
+  if (!editId.value) { loading = false; return }
   const game = await fetchGame(editId.value)
   if (!game) { router.replace('/backoffice'); return }
 
   platform.value = game.platform
+  platformId.value = game.appId
   title.value = game.title
   releaseYear.value = game.releaseYear
   developer.value = game.developer
@@ -48,9 +51,8 @@ onMounted(async () => {
   bannerSourceUrl.value = imageUrl(game.bannerFilename)
   coverData.value = coverSourceUrl.value
   bannerData.value = bannerSourceUrl.value
-
   await nextTick()
-  platformId.value = game.appId
+  loading = false
 })
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -69,8 +71,8 @@ async function save() {
     releaseYear: releaseYear.value ?? 0,
     developer: developer.value,
     appId: platformId.value,
-    cover: dataUrlToBlob(coverData.value),
-    banner: dataUrlToBlob(bannerData.value),
+    cover: coverData.value.startsWith('data:') ? dataUrlToBlob(coverData.value) : undefined,
+    banner: bannerData.value.startsWith('data:') ? dataUrlToBlob(bannerData.value) : undefined,
   }
 
   if (isEdit.value) {
@@ -130,25 +132,27 @@ async function save() {
 
         <label>
           Cover Image URL
-          <input v-model="coverSourceUrl" type="url" placeholder="https://..." required>
+          <input v-model="coverSourceUrl" type="text" placeholder="https://..." :required="!isEdit">
         </label>
         <ImageCropper
           v-if="coverSourceUrl"
           :url="coverSourceUrl"
           :frame-width="200"
           :frame-height="267"
+          :output-scale="2"
           @cropped="coverData = $event"
         />
 
         <label>
           Banner Image URL
-          <input v-model="bannerSourceUrl" type="url" placeholder="https://..." required>
+          <input v-model="bannerSourceUrl" type="text" placeholder="https://..." :required="!isEdit">
         </label>
         <ImageCropper
           v-if="bannerSourceUrl"
           :url="bannerSourceUrl"
           :frame-width="640"
           :frame-height="360"
+          :output-scale="4"
           @cropped="bannerData = $event"
         />
       </fieldset>

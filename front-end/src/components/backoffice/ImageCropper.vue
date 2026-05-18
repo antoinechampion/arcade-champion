@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   frameWidth: number
   frameHeight: number
   url: string
-}>()
+  outputScale?: number
+}>(), { outputScale: 1 })
 
 // In dev, external images must be proxied through localhost so the canvas can
 // read their pixels (cross-origin taints the canvas). In production (Electron/Tauri),
-// web security is relaxed so no proxy is needed.
+// web security is relaxed so no proxy is needed. Local paths (/images/...) are
+// already same-origin and don't need proxying.
 const proxiedUrl = computed(() => {
-  if (props.url.startsWith('data:') || !import.meta.env.DEV) return props.url
-  return `/api/local-dev-image-proxy?url=${encodeURIComponent(props.url)}`
+  const url = props.url
+  if (!import.meta.env.DEV || !url.startsWith('http')) return url
+  return `/api/local-dev-image-proxy?url=${encodeURIComponent(url)}`
 })
 
 const emit = defineEmits<{
@@ -99,16 +102,17 @@ function clampTranslation() {
 }
 
 function emitCrop() {
+  const s = props.outputScale
   const canvas = document.createElement('canvas')
-  canvas.width = props.frameWidth
-  canvas.height = props.frameHeight
+  canvas.width = props.frameWidth * s
+  canvas.height = props.frameHeight * s
   const ctx = canvas.getContext('2d')!
 
-  const scaledW = imgNaturalWidth * scale.value
-  const scaledH = imgNaturalHeight * scale.value
+  const scaledW = imgNaturalWidth * scale.value * s
+  const scaledH = imgNaturalHeight * scale.value * s
 
-  const drawX = (props.frameWidth - scaledW) / 2 + translateX.value
-  const drawY = (props.frameHeight - scaledH) / 2 + translateY.value
+  const drawX = (canvas.width - scaledW) / 2 + translateX.value * s
+  const drawY = (canvas.height - scaledH) / 2 + translateY.value * s
 
   ctx.drawImage(imgRef.value!, drawX, drawY, scaledW, scaledH)
   emit('cropped', canvas.toDataURL('image/jpeg', 0.85))

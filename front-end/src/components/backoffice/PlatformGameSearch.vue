@@ -36,8 +36,8 @@ function select(result: PlatformSearchResult) {
       <button type="button" class="search-btn" @click="doSearch">Search</button>
     </div>
 
-    <p v-if="selectedName" class="selected-name">
-      {{ selectedName }}
+    <p v-if="selectedName || model" class="selected-name">
+      {{ selectedName || model }}
     </p>
 
     <table v-if="results.length" class="results-table">

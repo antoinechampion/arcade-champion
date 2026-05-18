@@ -17,8 +17,8 @@ export interface GameInput {
   releaseYear: number
   developer: string
   appId: string
-  cover: Blob
-  banner: Blob
+  cover?: Blob
+  banner?: Blob
 }
 
 export interface PlatformSearchResult {

@@ -7,8 +7,8 @@ function buildFormData(input: GameInput): FormData {
   fd.append('releaseYear', String(input.releaseYear))
   fd.append('developer', input.developer)
   fd.append('appId', input.appId)
-  fd.append('cover', input.cover, 'cover.jpg')
-  fd.append('banner', input.banner, 'banner.jpg')
+  if (input.cover) fd.append('cover', input.cover, 'cover.jpg')
+  if (input.banner) fd.append('banner', input.banner, 'banner.jpg')
   return fd
 }
 
