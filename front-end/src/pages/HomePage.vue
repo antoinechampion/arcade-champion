@@ -37,7 +37,7 @@ function playFeatured() {
     @play="playFeatured"
   />
 
-  <RecentlyPlayed :games="recentGames" />
+  <RecentlyPlayed v-if="recentGames.length" :games="recentGames" />
 
   <AllGames />
 

@@ -29,27 +29,38 @@ export function usePageNavigation(zoneOrder: string[]) {
   const handlers = new Map<string, NavigationHandler>()
   const activeZoneId = ref<string | null>(zoneOrder[0] ?? null)
 
+  function findNextZone(from: number, direction: 1 | -1): string | null {
+    for (let i = from + direction; i >= 0 && i < zoneOrder.length; i += direction) {
+      if (handlers.has(zoneOrder[i])) return zoneOrder[i]
+    }
+    return null
+  }
+
   function emitCommand(command: NavCommand) {
     const activeId = activeZoneId.value
     if (!activeId) return
 
     const handler = handlers.get(activeId)
-    if (!handler) return
+    if (!handler) {
+      if (command !== 'up' && command !== 'down') return
+      const next = findNextZone(zoneOrder.indexOf(activeId), command === 'down' ? 1 : -1)
+      if (next) {
+        activeZoneId.value = next
+        handlers.get(next)!.onEnter?.(command === 'down' ? 'up' : 'down')
+      }
+      return
+    }
 
     const consumed = handler.onCommand(command)
     if (consumed) return
 
     if (command !== 'up' && command !== 'down') return
 
-    const currentIndex = zoneOrder.indexOf(activeId)
-    const nextIndex = command === 'down' ? currentIndex + 1 : currentIndex - 1
-    if (nextIndex < 0 || nextIndex >= zoneOrder.length) return
-
-    const nextId = zoneOrder[nextIndex]
-    if (!handlers.has(nextId)) return
-
-    activeZoneId.value = nextId
-    handlers.get(nextId)!.onEnter?.(command === 'down' ? 'up' : 'down')
+    const next = findNextZone(zoneOrder.indexOf(activeId), command === 'down' ? 1 : -1)
+    if (next) {
+      activeZoneId.value = next
+      handlers.get(next)!.onEnter?.(command === 'down' ? 'up' : 'down')
+    }
   }
 
   function onKeydown(e: KeyboardEvent) {
@@ -63,7 +74,12 @@ export function usePageNavigation(zoneOrder: string[]) {
   onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
   const manager: NavigationManager = {
-    register(id, handler) { handlers.set(id, handler) },
+    register(id, handler) {
+      handlers.set(id, handler)
+      if (!activeZoneId.value || !handlers.has(activeZoneId.value)) {
+        activeZoneId.value = id
+      }
+    },
     unregister(id) { handlers.delete(id) },
     activeZoneId,
     emitCommand,
