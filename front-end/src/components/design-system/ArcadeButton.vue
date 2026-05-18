@@ -95,6 +95,10 @@ defineProps<{
   --blob3-y: 75%;
 }
 
+.arcade-btn.focused::after {
+  filter: blur(30px);
+}
+
 .arcade-btn:focus-visible,
 .arcade-btn:focus,
 .arcade-btn.focused {
