@@ -69,7 +69,7 @@ interface BackendSearchResult {
 }
 
 export async function searchPlatformGames(platform: Platform, query: string): Promise<PlatformSearchResult[]> {
-  const params = new URLSearchParams({ platform: platform.toLowerCase(), query })
+  const params = new URLSearchParams({ platform: platform, query })
   const res = await fetch(`/api/search?${params}`)
   if (!res.ok) throw new Error(`Search failed: ${res.status}`)
   const data: BackendSearchResult[] = await res.json()
@@ -80,7 +80,7 @@ export async function launchGame(platform: Platform, appId: string): Promise<voi
   const res = await fetch('/api/launch', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ platform: platform.toLowerCase(), appId }),
+    body: JSON.stringify({ platform: platform, appId }),
   })
   if (!res.ok) throw new Error(`Failed to launch game: ${res.status}`)
 }

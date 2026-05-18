@@ -29,6 +29,7 @@ func LaunchGameHandler(db *database.DB) http.HandlerFunc {
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
+		_ = db.TouchLastPlayed(game.ID)
 
 		p := platform.Get(dto.Platform, db)
 		if p == nil {
@@ -41,7 +42,6 @@ func LaunchGameHandler(db *database.DB) http.HandlerFunc {
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
-		_ = db.TouchLastPlayed(game.ID)
 		log.Printf("launched game: %s", game.AppID)
 	}
 }

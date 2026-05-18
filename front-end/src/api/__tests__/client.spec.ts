@@ -85,7 +85,7 @@ describe('searchPlatformGames', () => {
     } as Response)
 
     const results = await searchPlatformGames('Steam', 'fighter')
-    expect(fetch).toHaveBeenCalledWith('/api/search?platform=steam&query=fighter')
+    expect(fetch).toHaveBeenCalledWith('/api/search?platform=Steam&query=fighter')
     expect(results).toEqual([{ name: 'Street Fighter 6', platformId: '1364780' }])
   })
 

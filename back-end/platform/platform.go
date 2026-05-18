@@ -14,11 +14,11 @@ type SearchResult struct {
 
 func Get(platformName string, db *database.DB) Platform {
 	switch platformName {
-	case "steam":
+	case "Steam":
 		return Steam{db: db}
-	case "fightcade":
+	case "Fightcade":
 		return Fightcade{db: db}
-	case "mame":
+	case "MAME":
 		return Mame{db: db}
 	}
 	return nil

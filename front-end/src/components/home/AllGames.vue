@@ -3,7 +3,7 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import GameCard from '@/components/design-system/GameCard.vue'
 import ArcadeButton from '@/components/design-system/ArcadeButton.vue'
 import ArcadeTextInput from '@/components/design-system/ArcadeTextInput.vue'
-import { fetchAllGames, imageUrl } from '@/api/client'
+import { fetchAllGames, launchGame, imageUrl } from '@/api/client'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 import type { Game } from '@/api/types'
 
@@ -130,6 +130,11 @@ function handleCardsNav(command: NavCommand): boolean {
       }
       focusArea.value = 'search'
       return true
+    case 'confirm': {
+      const game = sections.value[currentSectionIdx.value]?.games[currentCardIdx.value]
+      if (game) launchGame(game.platform, game.appId)
+      return true
+    }
     default:
       return false
   }

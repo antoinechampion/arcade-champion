@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import GameCard from '@/components/design-system/GameCard.vue'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
-import { imageUrl } from '@/api/client'
+import { imageUrl, launchGame } from '@/api/client'
 import type { Game } from '@/api/types'
 
 const props = defineProps<{
@@ -30,6 +30,11 @@ const { active } = useComponentNavigation('recentlyPlayed', {
       if (selectedIndex.value <= 0) return true
       selectedIndex.value--
       scrollToSelected()
+      return true
+    }
+    if (command === 'confirm') {
+      const game = props.games[selectedIndex.value]
+      if (game) launchGame(game.platform, game.appId)
       return true
     }
     return false
