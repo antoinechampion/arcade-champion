@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
 import { fetchGame, createGame, updateGame, searchPlatformGames, imageUrl } from '@/api/client'
-import type { Platform, LaunchConfig, GameInput } from '@/api/types'
+import type { Platform, GameInput } from '@/api/types'
 import PlatformGameSearch from '@/components/backoffice/PlatformGameSearch.vue'
 import ImageCropper from '@/components/backoffice/ImageCropper.vue'
 
@@ -50,19 +50,8 @@ onMounted(async () => {
   bannerData.value = bannerSourceUrl.value
 
   await nextTick()
-
-  if ('appId' in game.launchConfig) platformId.value = game.launchConfig.appId
-  if ('gameId' in game.launchConfig) platformId.value = game.launchConfig.gameId
-  if ('driverName' in game.launchConfig) platformId.value = game.launchConfig.driverName
+  platformId.value = game.appId
 })
-
-function buildLaunchConfig(): LaunchConfig {
-  switch (platform.value) {
-    case 'Steam': return { appId: platformId.value }
-    case 'Fightcade': return { gameId: platformId.value }
-    case 'MAME': return { driverName: platformId.value }
-  }
-}
 
 function dataUrlToBlob(dataUrl: string): Blob {
   const [header, base64] = dataUrl.split(',')
@@ -79,7 +68,7 @@ async function save() {
     platform: platform.value,
     releaseYear: releaseYear.value ?? 0,
     developer: developer.value,
-    launchConfig: buildLaunchConfig(),
+    appId: platformId.value,
     cover: dataUrlToBlob(coverData.value),
     banner: dataUrlToBlob(bannerData.value),
   }

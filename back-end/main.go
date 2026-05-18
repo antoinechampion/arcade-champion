@@ -22,6 +22,16 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+	r.HandleFunc("/api/games", handlers.ListGamesHandler(db)).
+		Methods("GET")
+	r.HandleFunc("/api/games", handlers.CreateGameHandler(db)).
+		Methods("POST")
+	r.HandleFunc("/api/games/{id}", handlers.GetGameHandler(db)).
+		Methods("GET")
+	r.HandleFunc("/api/games/{id}", handlers.UpdateGameHandler(db)).
+		Methods("PUT")
+	r.HandleFunc("/api/games/{id}", handlers.DeleteGameHandler(db)).
+		Methods("DELETE")
 	r.HandleFunc("/api/search", handlers.SearchQueryHandler(db)).
 		Methods("GET")
 	r.HandleFunc("/api/settings", handlers.SettingsHandler(db)).

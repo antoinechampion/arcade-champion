@@ -1,19 +1,5 @@
 export type Platform = 'Steam' | 'Fightcade' | 'MAME'
 
-export interface SteamConfig {
-  appId: string
-}
-
-export interface FightcadeConfig {
-  gameId: string
-}
-
-export interface MameConfig {
-  driverName: string
-}
-
-export type LaunchConfig = SteamConfig | FightcadeConfig | MameConfig
-
 export interface Game {
   id: string
   title: string
@@ -22,7 +8,7 @@ export interface Game {
   developer: string
   coverFilename: string
   bannerFilename: string
-  launchConfig: LaunchConfig
+  appId: string
 }
 
 export interface GameInput {
@@ -30,7 +16,7 @@ export interface GameInput {
   platform: Platform
   releaseYear: number
   developer: string
-  launchConfig: LaunchConfig
+  appId: string
   cover: Blob
   banner: Blob
 }
