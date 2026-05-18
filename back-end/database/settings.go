@@ -48,3 +48,6 @@ func (d *DB) SetFightcadePassword(v string) error { return d.setEncryptedSetting
 
 func (d *DB) MamePath() (string, error)    { return d.getSetting("mame.path") }
 func (d *DB) SetMamePath(v string) error   { return d.setSetting("mame.path", v) }
+
+func (d *DB) SteamPath() (string, error)  { return d.getSetting("steam.path") }
+func (d *DB) SetSteamPath(v string) error { return d.setSetting("steam.path", v) }
