@@ -78,6 +78,12 @@ export function usePageNavigation(zoneOrder: string[]) {
       handlers.set(id, handler)
       if (!activeZoneId.value || !handlers.has(activeZoneId.value)) {
         activeZoneId.value = id
+      } else {
+        const activeIdx = zoneOrder.indexOf(activeZoneId.value)
+        const newIdx = zoneOrder.indexOf(id)
+        if (newIdx >= 0 && newIdx < activeIdx) {
+          activeZoneId.value = id
+        }
       }
     },
     unregister(id) { handlers.delete(id) },

@@ -177,4 +177,55 @@ describe('usePageNavigation + useComponentNavigation', () => {
     await press('ArrowUp')
     expect(activeZone()).toBe('b')
   })
+
+  it('reclaims focus when an earlier zone registers late', async () => {
+    const ZoneA = defineComponent({
+      setup() {
+        const { active } = useComponentNavigation('a', { onCommand: () => false })
+        return { active }
+      },
+      render() {
+        return h('div', { 'data-zone': 'a', 'data-active': this.active })
+      },
+    })
+
+    const ZoneB = defineComponent({
+      setup() {
+        const { active } = useComponentNavigation('b', { onCommand: () => false })
+        return { active }
+      },
+      render() {
+        return h('div', { 'data-zone': 'b', 'data-active': this.active })
+      },
+    })
+
+    const App = defineComponent({
+      props: { showA: { type: Boolean, default: false } },
+      setup() {
+        usePageNavigation(['a', 'b'])
+      },
+      render() {
+        return h('div', [
+          this.showA ? h(ZoneA) : null,
+          h(ZoneB),
+        ])
+      },
+    })
+
+    const wrapper = mount(App, { attachTo: document.body, props: { showA: false } })
+    await nextTick()
+
+    function activeZone() {
+      const el = wrapper.findAll('[data-active="true"]')
+      return el.length === 1 ? el[0].attributes('data-zone') : null
+    }
+
+    expect(activeZone()).toBe('b')
+
+    await wrapper.setProps({ showA: true })
+    await nextTick()
+    expect(activeZone()).toBe('a')
+
+    wrapper.unmount()
+  })
 })
