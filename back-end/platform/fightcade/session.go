@@ -3,6 +3,7 @@ package fightcade
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -63,30 +64,38 @@ func isSuccess(resp map[string]any) bool {
 
 func authenticate(ctx context.Context, client *wsClient, creds Credentials) (map[string]any, error) {
 	if creds.Cookie != "" {
+		log.Printf("[fightcade] authenticating with cookie")
 		return client.autoLogin(ctx, creds.Cookie)
 	}
+	log.Printf("[fightcade] authenticating with username=%s", creds.Username)
 	return client.login(ctx, creds.Username, creds.Password)
 }
 
 func Login(ctx context.Context, creds Credentials) (string, error) {
+	log.Printf("[fightcade] Login: connecting to server")
 	client, err := connect(ctx)
 	if err != nil {
+		log.Printf("[fightcade] Login: connection failed: %v", err)
 		return "", err
 	}
 	defer client.close()
 
 	resp, err := authenticate(ctx, client, creds)
 	if err != nil {
+		log.Printf("[fightcade] Login: auth error: %v", err)
 		return "", err
 	}
 	if !isSuccess(resp) {
+		log.Printf("[fightcade] Login: auth rejected: %v", resp["error"])
 		return "", fmt.Errorf("login failed: %v", resp["error"])
 	}
 
 	cookie, _ := resp["cookie"].(string)
 	if cookie == "" {
+		log.Printf("[fightcade] Login: no cookie in response")
 		return "", fmt.Errorf("login succeeded but server returned no cookie")
 	}
+	log.Printf("[fightcade] Login: success")
 	return cookie, nil
 }
 
@@ -96,17 +105,21 @@ type SearchResult struct {
 }
 
 func Search(ctx context.Context, creds Credentials, query string) (SearchResult, error) {
+	log.Printf("[fightcade] Search: query=%q", query)
 	client, err := connect(ctx)
 	if err != nil {
+		log.Printf("[fightcade] Search: connection failed: %v", err)
 		return SearchResult{}, err
 	}
 	defer client.close()
 
 	resp, err := authenticate(ctx, client, creds)
 	if err != nil {
+		log.Printf("[fightcade] Search: auth error: %v", err)
 		return SearchResult{}, err
 	}
 	if !isSuccess(resp) {
+		log.Printf("[fightcade] Search: auth rejected: %v", resp["error"])
 		return SearchResult{}, fmt.Errorf("login failed: %v", resp["error"])
 	}
 
@@ -114,6 +127,7 @@ func Search(ctx context.Context, creds Credentials, query string) (SearchResult,
 
 	result, err := client.searchChannels(ctx, query, 0)
 	if err != nil {
+		log.Printf("[fightcade] Search: searchChannels failed: %v", err)
 		return SearchResult{}, err
 	}
 
@@ -137,38 +151,48 @@ func Search(ctx context.Context, creds Credentials, query string) (SearchResult,
 			Ranked:   ranked,
 		})
 	}
+	log.Printf("[fightcade] Search: found %d channels", len(channels))
 	return SearchResult{Channels: channels, Cookie: cookie}, nil
 }
 
 func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, error) {
+	log.Printf("[fightcade] Lobby: starting for game=%q", game)
 	client, err := connect(ctx)
 	if err != nil {
+		log.Printf("[fightcade] Lobby: connection failed: %v", err)
 		return nil, err
 	}
 	defer client.close()
 
 	resp, err := authenticate(ctx, client, creds)
 	if err != nil {
+		log.Printf("[fightcade] Lobby: auth error: %v", err)
 		return nil, err
 	}
 	if !isSuccess(resp) {
+		log.Printf("[fightcade] Lobby: auth rejected: %v", resp["error"])
 		return nil, fmt.Errorf("login failed: %v", resp["error"])
 	}
 
 	user, _ := resp["user"].(map[string]any)
 	token, _ := user["token"].(string)
 	username, _ := user["name"].(string)
+	log.Printf("[fightcade] Lobby: logged in as %q", username)
 
 	channelname, err := resolveChannel(ctx, client, game)
 	if err != nil {
+		log.Printf("[fightcade] Lobby: resolveChannel failed: %v", err)
 		return nil, err
 	}
+	log.Printf("[fightcade] Lobby: resolved channel=%q", channelname)
 
 	joinResp, err := client.joinChannel(ctx, channelname)
 	if err != nil {
+		log.Printf("[fightcade] Lobby: joinChannel error: %v", err)
 		return nil, err
 	}
 	if !isSuccess(joinResp) {
+		log.Printf("[fightcade] Lobby: joinChannel rejected: %v", joinResp["error"])
 		return nil, fmt.Errorf("failed to join %s: %v", channelname, joinResp["error"])
 	}
 	defer func() { _ = client.leaveChannel(channelname) }()
@@ -182,9 +206,20 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 		gameid = game
 	}
 	isRanked, _ := joinResp["ranked"].(bool)
+	log.Printf("[fightcade] Lobby: channel=%q emulator=%s gameid=%s ranked=%v", channelname, emulator, gameid, isRanked)
 
 	usersRaw, _ := joinResp["users"].([]any)
 	lobbyUsers, myRank := parseLobbyUsers(usersRaw, username)
+	log.Printf("[fightcade] Lobby: %d users in lobby, my rank=%s(%d)", len(lobbyUsers), RankName(myRank), myRank)
+	for _, u := range lobbyUsers {
+		status := "available"
+		if u.Playing {
+			status = "playing"
+		} else if u.Away {
+			status = "away"
+		}
+		log.Printf("[fightcade] Lobby:   user=%s rank=%s(%d) status=%s", u.Name, RankName(u.Rank), u.Rank, status)
+	}
 
 	mm := &matchmaker{client: client, config: lobbyConfig{
 		channelName: channelname,
@@ -200,27 +235,34 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 }
 
 func resolveChannel(ctx context.Context, client *wsClient, game string) (string, error) {
+	log.Printf("[fightcade] resolveChannel: searching for game=%q", game)
 	result, err := client.searchChannels(ctx, game, 0)
 	if err != nil {
 		return "", err
 	}
 	channels, _ := result["channels"].([]any)
+	log.Printf("[fightcade] resolveChannel: got %d channels", len(channels))
 	for _, raw := range channels {
 		ch, _ := raw.(map[string]any)
-		if gid, _ := ch["gameid"].(string); gid == game {
-			name, _ := ch["name"].(string)
+		gid, _ := ch["gameid"].(string)
+		name, _ := ch["name"].(string)
+		log.Printf("[fightcade] resolveChannel:   name=%q gameid=%q", name, gid)
+		if gid == game {
+			log.Printf("[fightcade] resolveChannel: matched by gameid -> %q", name)
 			return name, nil
 		}
 	}
 	for _, raw := range channels {
 		ch, _ := raw.(map[string]any)
 		if name, _ := ch["name"].(string); name == game {
+			log.Printf("[fightcade] resolveChannel: matched by name -> %q", name)
 			return name, nil
 		}
 	}
 	if len(channels) > 0 {
 		ch, _ := channels[0].(map[string]any)
 		name, _ := ch["name"].(string)
+		log.Printf("[fightcade] resolveChannel: no exact match, using first result -> %q", name)
 		return name, nil
 	}
 	return "", fmt.Errorf("no channel found for %q", game)

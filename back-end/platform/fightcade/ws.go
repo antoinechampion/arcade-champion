@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -29,12 +30,14 @@ type wsClient struct {
 }
 
 func connect(ctx context.Context) (*wsClient, error) {
+	log.Printf("[fightcade] ws: connecting to %s", serverURI)
 	dialer := websocket.Dialer{}
 	header := http.Header{"User-Agent": {userAgent}}
 	conn, _, err := dialer.DialContext(ctx, serverURI, header)
 	if err != nil {
 		return nil, fmt.Errorf("websocket dial: %w", err)
 	}
+	log.Printf("[fightcade] ws: connected")
 	c := &wsClient{conn: conn, done: make(chan struct{})}
 	go c.recvLoop()
 	return c, nil
@@ -57,6 +60,9 @@ func (c *wsClient) sendCmd(ctx context.Context, payload map[string]any) (map[str
 	c.pending.Store(idx, ch)
 	defer c.pending.Delete(idx)
 
+	req, _ := payload["req"].(string)
+	log.Printf("[fightcade] ws: sendCmd idx=%d req=%s", idx, req)
+
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return nil, err
@@ -69,8 +75,10 @@ func (c *wsClient) sendCmd(ctx context.Context, payload map[string]any) (map[str
 	defer cancel()
 	select {
 	case resp := <-ch:
+		log.Printf("[fightcade] ws: response idx=%d req=%s result=%v", idx, req, resp["result"])
 		return resp, nil
 	case <-ctx.Done():
+		log.Printf("[fightcade] ws: timeout idx=%d req=%s", idx, req)
 		return nil, ctx.Err()
 	}
 }
@@ -98,10 +106,12 @@ func (c *wsClient) recvLoop() {
 	for {
 		_, raw, err := c.conn.ReadMessage()
 		if err != nil {
+			log.Printf("[fightcade] ws: recvLoop ended: %v", err)
 			return
 		}
 		var msg map[string]any
 		if err := json.Unmarshal(raw, &msg); err != nil {
+			log.Printf("[fightcade] ws: recvLoop unmarshal error: %v", err)
 			continue
 		}
 
@@ -110,12 +120,17 @@ func (c *wsClient) recvLoop() {
 				idx := int64(idxf.(float64))
 				if val, loaded := c.pending.LoadAndDelete(idx); loaded {
 					val.(chan map[string]any) <- msg
+				} else {
+					log.Printf("[fightcade] ws: recvLoop orphan response idx=%d", idx)
 				}
 			}
 		} else {
 			req, _ := msg["req"].(string)
 			if val, ok := c.handlers.Load(req); ok {
+				log.Printf("[fightcade] ws: recvLoop event=%s", req)
 				val.(eventHandler)(msg)
+			} else {
+				log.Printf("[fightcade] ws: recvLoop unhandled event=%s", req)
 			}
 		}
 	}
