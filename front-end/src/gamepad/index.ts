@@ -26,15 +26,18 @@ export function readGamepad(gp: Gamepad): Record<Direction, boolean> {
   }
 }
 
-export function startGamepadPolling() {
+export function startGamepadPolling(): () => void {
   let prev: Record<Direction, boolean> = { up: false, down: false, left: false, right: false, confirm: false }
   const timers = new Map<Direction, { timeout: number; interval: number | null }>()
+  let running = true
 
   function emit(key: string) {
     window.dispatchEvent(new KeyboardEvent('keydown', { key }))
   }
 
   function poll() {
+    if (!running) return
+
     const gp = navigator.getGamepads()[0]
     if (gp) {
       const state = readGamepad(gp)
@@ -69,4 +72,13 @@ export function startGamepadPolling() {
   }
 
   requestAnimationFrame(poll)
+
+  return () => {
+    running = false
+    for (const [, t] of timers) {
+      clearTimeout(t.timeout)
+      if (t.interval !== null) clearInterval(t.interval)
+    }
+    timers.clear()
+  }
 }

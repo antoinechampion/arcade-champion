@@ -31,12 +31,17 @@ func LaunchGameHandler(db *database.DB) http.HandlerFunc {
 		}
 
 		p := platform.Get(dto.Platform, db)
+		if p == nil {
+			http.Error(w, "unknown platform", http.StatusBadRequest)
+			return
+		}
 		err = p.Launch(game)
 		if err != nil {
 			log.Printf("failed to launch the game: %s", err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
+		_ = db.TouchLastPlayed(game.ID)
 		log.Printf("launched game: %s", game.AppID)
 	}
 }

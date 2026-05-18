@@ -25,7 +25,7 @@ func Search(mameCmd, query string) ([]Game, error) {
 
 func Launch(mameCmd, appId string) error {
 	name, args := parseCommand(mameCmd)
-	args = append(args, appId+".zip")
+	args = append(args, appId)
 	cmd := exec.Command(name, args...)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to launch mame game %s: %w", appId, err)

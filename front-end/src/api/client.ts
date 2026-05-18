@@ -17,8 +17,8 @@ export function imageUrl(filename: string): string {
 }
 
 export async function fetchRecentlyPlayed(): Promise<Game[]> {
-  const res = await fetch('/api/games')
-  if (!res.ok) throw new Error(`Failed to fetch games: ${res.status}`)
+  const res = await fetch('/api/games/recent')
+  if (!res.ok) throw new Error(`Failed to fetch recently played: ${res.status}`)
   return res.json()
 }
 
@@ -74,6 +74,15 @@ export async function searchPlatformGames(platform: Platform, query: string): Pr
   if (!res.ok) throw new Error(`Search failed: ${res.status}`)
   const data: BackendSearchResult[] = await res.json()
   return data.map((r) => ({ name: r.game, platformId: r.appId }))
+}
+
+export async function launchGame(platform: Platform, appId: string): Promise<void> {
+  const res = await fetch('/api/launch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ platform: platform.toLowerCase(), appId }),
+  })
+  if (!res.ok) throw new Error(`Failed to launch game: ${res.status}`)
 }
 
 export async function fetchSettings(): Promise<Settings> {

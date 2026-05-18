@@ -7,8 +7,7 @@ CREATE TABLE IF NOT EXISTS games (
     cover_filename  TEXT    NOT NULL,
     banner_filename TEXT    NOT NULL,
     app_id          TEXT    NOT NULL,
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+    last_played_at  DATETIME
 );
 
 CREATE TABLE IF NOT EXISTS settings (

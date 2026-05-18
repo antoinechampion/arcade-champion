@@ -1,9 +1,11 @@
 package fightcade
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"math"
+	"slices"
 	"sync"
 	"time"
 )
@@ -157,15 +159,10 @@ func sortByRankDistance(users []LobbyUser, myRank int, myName string) []LobbyUse
 		}
 		candidates = append(candidates, u)
 	}
-	for i := 1; i < len(candidates); i++ {
-		key := candidates[i]
-		keyDist := math.Abs(float64(key.Rank - myRank))
-		j := i - 1
-		for j >= 0 && math.Abs(float64(candidates[j].Rank-myRank)) > keyDist {
-			candidates[j+1] = candidates[j]
-			j--
-		}
-		candidates[j+1] = key
-	}
+	slices.SortFunc(candidates, func(a, b LobbyUser) int {
+		da := math.Abs(float64(a.Rank - myRank))
+		db := math.Abs(float64(b.Rank - myRank))
+		return cmp.Compare(da, db)
+	})
 	return candidates
 }

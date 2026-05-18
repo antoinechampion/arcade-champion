@@ -11,13 +11,17 @@ defineProps<{
   bannerUrl: string
 }>()
 
+const emit = defineEmits<{
+  play: []
+}>()
+
 const buttonRef = ref<InstanceType<typeof ArcadeButton> | null>(null)
 const sectionRef = ref<HTMLElement | null>(null)
 
 const { active } = useComponentNavigation('featured', {
   onCommand(command: NavCommand) {
     if (command === 'confirm') {
-      buttonRef.value?.$el.click()
+      emit('play')
       return true
     }
     return false
@@ -38,7 +42,7 @@ const { active } = useComponentNavigation('featured', {
       <span class="text-sm font-medium uppercase tracking-widest opacity-70 ml-0.5">{{ platform }}</span>
       <h1 class="text-5xl font-bold leading-tight">{{ title }}</h1>
       <span class="text-sm opacity-60 ml-0.5">{{ releaseYear }} - {{ developer }}</span>
-      <ArcadeButton ref="buttonRef" class="mt-9" label="Play" :focused="active">
+      <ArcadeButton ref="buttonRef" class="mt-9" label="Play" :focused="active" @click="emit('play')">
         <template #icon>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
             <path d="M8 5v14l11-7z" />

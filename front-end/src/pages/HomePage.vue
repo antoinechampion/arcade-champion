@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 import FeaturedGame from '@/components/home/FeaturedGame.vue'
 import RecentlyPlayed from '@/components/home/RecentlyPlayed.vue'
 import AllGames from '@/components/home/AllGames.vue'
-import { fetchRecentlyPlayed, imageUrl } from '@/api/client'
+import { fetchRecentlyPlayed, launchGame, imageUrl } from '@/api/client'
 import { usePageNavigation } from '@/composables/navigation'
 import type { Game } from '@/api/types'
 
@@ -18,6 +18,12 @@ onMounted(async () => {
 
 const featuredGame = computed(() => games.value[0])
 const recentGames = computed(() => games.value.slice(1))
+
+function playFeatured() {
+  if (featuredGame.value) {
+    launchGame(featuredGame.value.platform, featuredGame.value.appId)
+  }
+}
 </script>
 
 <template>
@@ -28,6 +34,7 @@ const recentGames = computed(() => games.value.slice(1))
     :release-year="featuredGame.releaseYear"
     :developer="featuredGame.developer"
     :banner-url="imageUrl(featuredGame.bannerFilename)"
+    @play="playFeatured"
   />
 
   <RecentlyPlayed :games="recentGames" />

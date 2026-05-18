@@ -3,6 +3,7 @@ package handlers
 import (
 	"back-end/database"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -11,27 +12,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type gameResponse struct {
-	ID             string `json:"id"`
-	Title          string `json:"title"`
-	Platform       string `json:"platform"`
-	ReleaseYear    int    `json:"releaseYear"`
-	Developer      string `json:"developer"`
-	CoverFilename  string `json:"coverFilename"`
-	BannerFilename string `json:"bannerFilename"`
-	AppID          string `json:"appId"`
-}
 
-func toGameResponse(g database.Game) gameResponse {
-	return gameResponse{
-		ID:             strconv.FormatInt(g.ID, 10),
-		Title:          g.Title,
-		Platform:       g.Platform,
-		ReleaseYear:    g.ReleaseYear,
-		Developer:      g.Developer,
-		CoverFilename:  g.CoverFilename,
-		BannerFilename: g.BannerFilename,
-		AppID:          g.AppID,
+func RecentlyPlayedHandler(db *database.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		games, err := db.ListRecentlyPlayed(10)
+		if err != nil {
+			log.Printf("recently played: %v", err)
+			http.Error(w, "failed to list recently played", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(games)
 	}
 }
 
@@ -44,12 +35,8 @@ func ListGamesHandler(db *database.DB) http.HandlerFunc {
 			http.Error(w, "failed to list games", http.StatusInternalServerError)
 			return
 		}
-		resp := make([]gameResponse, len(games))
-		for i, g := range games {
-			resp[i] = toGameResponse(g)
-		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode(games)
 	}
 }
 
@@ -66,7 +53,7 @@ func GetGameHandler(db *database.DB) http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(toGameResponse(game))
+		json.NewEncoder(w).Encode(game)
 	}
 }
 
@@ -97,6 +84,7 @@ func CreateGameHandler(db *database.DB) http.HandlerFunc {
 		coverFilename, err := saveFormImage(db, r, "cover", created.ID)
 		if err != nil {
 			log.Printf("create game save cover: %v", err)
+			_ = db.DeleteGame(created.ID)
 			http.Error(w, "failed to save cover image", http.StatusInternalServerError)
 			return
 		}
@@ -104,6 +92,8 @@ func CreateGameHandler(db *database.DB) http.HandlerFunc {
 		bannerFilename, err := saveFormImage(db, r, "banner", created.ID)
 		if err != nil {
 			log.Printf("create game save banner: %v", err)
+			db.DeleteImage(coverFilename)
+			_ = db.DeleteGame(created.ID)
 			http.Error(w, "failed to save banner image", http.StatusInternalServerError)
 			return
 		}
@@ -119,7 +109,7 @@ func CreateGameHandler(db *database.DB) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(toGameResponse(created))
+		json.NewEncoder(w).Encode(created)
 	}
 }
 
@@ -184,7 +174,7 @@ func UpdateGameHandler(db *database.DB) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(toGameResponse(updated))
+		json.NewEncoder(w).Encode(updated)
 	}
 }
 
@@ -215,11 +205,16 @@ func DeleteGameHandler(db *database.DB) http.HandlerFunc {
 }
 
 func saveFormImage(db *database.DB, r *http.Request, field string, gameID int64) (string, error) {
-	file, _, err := r.FormFile(field)
+	file, header, err := r.FormFile(field)
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
+
+	ct := header.Header.Get("Content-Type")
+	if ct != "" && ct != "image/jpeg" && ct != "image/png" && ct != "image/webp" {
+		return "", fmt.Errorf("unsupported image type: %s", ct)
+	}
 
 	data, err := io.ReadAll(file)
 	if err != nil {

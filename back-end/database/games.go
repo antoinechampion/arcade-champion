@@ -32,7 +32,7 @@ func (d *DB) ListGames(query string) ([]Game, error) {
 	}
 	defer rows.Close()
 
-	var games []Game
+	games := []Game{}
 	for rows.Next() {
 		var g Game
 		if err := rows.Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.CoverFilename, &g.BannerFilename, &g.AppID); err != nil {
@@ -70,7 +70,7 @@ func (d *DB) CreateGame(g Game) (Game, error) {
 
 func (d *DB) UpdateGame(id int64, g Game) (Game, error) {
 	res, err := d.db.Exec(
-		`UPDATE games SET title = ?, platform = ?, release_year = ?, developer = ?, cover_filename = ?, banner_filename = ?, app_id = ?, updated_at = CURRENT_TIMESTAMP
+		`UPDATE games SET title = ?, platform = ?, release_year = ?, developer = ?, cover_filename = ?, banner_filename = ?, app_id = ?
 		WHERE id = ?`,
 		g.Title, g.Platform, g.ReleaseYear, g.Developer, g.CoverFilename, g.BannerFilename, g.AppID, id,
 	)
@@ -101,6 +101,31 @@ func (d *DB) DeleteGame(id int64) error {
 		return fmt.Errorf("game %d not found", id)
 	}
 	return nil
+}
+
+func (d *DB) TouchLastPlayed(id int64) error {
+	_, err := d.db.Exec(`UPDATE games SET last_played_at = CURRENT_TIMESTAMP WHERE id = ?`, id)
+	return err
+}
+
+func (d *DB) ListRecentlyPlayed(limit int) ([]Game, error) {
+	rows, err := d.db.Query(
+		`SELECT id, title, platform, release_year, developer, cover_filename, banner_filename, app_id
+		FROM games WHERE last_played_at IS NOT NULL ORDER BY last_played_at DESC LIMIT ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	games := []Game{}
+	for rows.Next() {
+		var g Game
+		if err := rows.Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.CoverFilename, &g.BannerFilename, &g.AppID); err != nil {
+			return nil, err
+		}
+		games = append(games, g)
+	}
+	return games, rows.Err()
 }
 
 func (d *DB) FindGameByAppId(platform string, appId string) (Game, error) {

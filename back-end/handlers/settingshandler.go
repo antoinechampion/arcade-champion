@@ -12,6 +12,7 @@ type settings struct {
 	FightcadePassword string `json:"fightcadePassword"`
 	FightcadeCookie   string `json:"fightcadeCookie"`
 	MamePath          string `json:"mamePath"`
+	SteamPath         string `json:"steamPath"`
 }
 
 func SettingsHandler(db *database.DB) http.HandlerFunc {
@@ -50,6 +51,12 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 		http.Error(w, "failed to load settings", http.StatusInternalServerError)
 		return
 	}
+	steamPath, err := db.SteamPath()
+	if err != nil {
+		log.Printf("get settings steam.path: %v", err)
+		http.Error(w, "failed to load settings", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(settings{
@@ -57,6 +64,7 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 		FightcadePassword: password,
 		FightcadeCookie:   cookie,
 		MamePath:          mamePath,
+		SteamPath:         steamPath,
 	})
 }
 
@@ -85,6 +93,11 @@ func putSettings(db *database.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	if err := db.SetMamePath(s.MamePath); err != nil {
 		log.Printf("put settings mame.path: %v", err)
+		http.Error(w, "failed to save settings", http.StatusInternalServerError)
+		return
+	}
+	if err := db.SetSteamPath(s.SteamPath); err != nil {
+		log.Printf("put settings steam.path: %v", err)
 		http.Error(w, "failed to save settings", http.StatusInternalServerError)
 		return
 	}

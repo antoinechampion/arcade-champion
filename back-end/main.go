@@ -22,6 +22,8 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+	r.HandleFunc("/api/games/recent", handlers.RecentlyPlayedHandler(db)).
+		Methods("GET")
 	r.HandleFunc("/api/games", handlers.ListGamesHandler(db)).
 		Methods("GET")
 	r.HandleFunc("/api/games", handlers.CreateGameHandler(db)).
@@ -43,5 +45,5 @@ func main() {
 	)
 
 	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

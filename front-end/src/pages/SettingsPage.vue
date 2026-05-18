@@ -9,6 +9,7 @@ const fightcadeUsername = ref('')
 const fightcadePassword = ref('')
 const fightcadeCookie = ref('')
 const mamePath = ref('')
+const steamPath = ref('')
 
 onMounted(async () => {
   const s = await fetchSettings()
@@ -16,6 +17,7 @@ onMounted(async () => {
   fightcadePassword.value = s.fightcadePassword
   fightcadeCookie.value = s.fightcadeCookie
   mamePath.value = s.mamePath
+  steamPath.value = s.steamPath
 })
 
 async function save() {
@@ -24,6 +26,7 @@ async function save() {
     fightcadePassword: fightcadePassword.value,
     fightcadeCookie: fightcadeCookie.value,
     mamePath: mamePath.value,
+    steamPath: steamPath.value,
   })
   router.push('/backoffice')
 }
@@ -51,6 +54,15 @@ async function save() {
         <label>
           Cookie
           <input v-model="fightcadeCookie" type="text" placeholder="Session cookie">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Steam</legend>
+
+        <label>
+          Library Path
+          <input v-model="steamPath" type="text" placeholder="/home/user/.steam/steam">
         </label>
       </fieldset>
 
