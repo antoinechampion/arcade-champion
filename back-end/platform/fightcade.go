@@ -61,5 +61,11 @@ func (f Fightcade) Search(query string) ([]SearchResult, error) {
 }
 
 func (f Fightcade) Launch(game database.Game) error {
-	panic("implement me")
+	creds, err := f.credentials()
+	if err != nil {
+		return err
+	}
+
+	_, err = fightcade.Lobby(context.Background(), creds, game.AppID)
+	return err
 }
