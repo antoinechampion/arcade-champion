@@ -3,10 +3,10 @@ import { mount, flushPromises } from '@vue/test-utils'
 import AllGames from '../AllGames.vue'
 
 const mockGames = [
-  { id: '1', title: 'Alpha Game', platform: 'Steam', releaseYear: 2020, developer: 'Dev A', imageUrl: '/a.jpg' },
-  { id: '2', title: 'Alpha Two', platform: 'MAME', releaseYear: 2021, developer: 'Dev B', imageUrl: '/b.jpg' },
-  { id: '3', title: 'Beta Game', platform: 'Fightcade', releaseYear: 2022, developer: 'Dev C', imageUrl: '/c.jpg' },
-  { id: '4', title: 'Gamma Game', platform: 'Steam', releaseYear: 2023, developer: 'Dev D', imageUrl: '/d.jpg' },
+  { id: '1', title: 'Alpha Game', platform: 'Steam', releaseYear: 2020, developer: 'Dev A', coverFilename: 'a.jpg', bannerFilename: 'a_b.jpg' },
+  { id: '2', title: 'Alpha Two', platform: 'MAME', releaseYear: 2021, developer: 'Dev B', coverFilename: 'b.jpg', bannerFilename: 'b_b.jpg' },
+  { id: '3', title: 'Beta Game', platform: 'Fightcade', releaseYear: 2022, developer: 'Dev C', coverFilename: 'c.jpg', bannerFilename: 'c_b.jpg' },
+  { id: '4', title: 'Gamma Game', platform: 'Steam', releaseYear: 2023, developer: 'Dev D', coverFilename: 'd.jpg', bannerFilename: 'd_b.jpg' },
 ]
 
 vi.mock('@/api/client', () => ({
@@ -18,6 +18,7 @@ vi.mock('@/api/client', () => ({
     }
     return Promise.resolve(games)
   }),
+  imageUrl: (filename: string) => `/images/${filename}`,
 }))
 
 async function mountAllGames() {

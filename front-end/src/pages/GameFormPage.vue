@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { RouterLink, useRouter, useRoute } from 'vue-router'
-import { fetchGame, createGame, updateGame, searchPlatformGames } from '@/api/client'
+import { fetchGame, createGame, updateGame, searchPlatformGames, imageUrl } from '@/api/client'
 import type { Platform, LaunchConfig, GameInput } from '@/api/types'
 import PlatformGameSearch from '@/components/backoffice/PlatformGameSearch.vue'
 import ImageCropper from '@/components/backoffice/ImageCropper.vue'
@@ -44,10 +44,10 @@ onMounted(async () => {
   title.value = game.title
   releaseYear.value = game.releaseYear
   developer.value = game.developer
-  coverSourceUrl.value = game.imageUrl
-  bannerSourceUrl.value = game.bannerUrl
-  coverData.value = game.imageUrl
-  bannerData.value = game.bannerUrl
+  coverSourceUrl.value = imageUrl(game.coverFilename)
+  bannerSourceUrl.value = imageUrl(game.bannerFilename)
+  coverData.value = coverSourceUrl.value
+  bannerData.value = bannerSourceUrl.value
 
   await nextTick()
 

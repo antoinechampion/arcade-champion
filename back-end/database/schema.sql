@@ -1,14 +1,14 @@
 CREATE TABLE IF NOT EXISTS games (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    title        TEXT    NOT NULL,
-    platform     TEXT    NOT NULL,
-    release_year INTEGER NOT NULL,
-    developer    TEXT    NOT NULL,
-    image_url    TEXT    NOT NULL,
-    banner_url   TEXT,
-    app_id  TEXT    NOT NULL,
-    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at   DATETIME DEFAULT CURRENT_TIMESTAMP
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    title           TEXT    NOT NULL,
+    platform        TEXT    NOT NULL,
+    release_year    INTEGER NOT NULL,
+    developer       TEXT    NOT NULL,
+    cover_filename  TEXT    NOT NULL,
+    banner_filename TEXT    NOT NULL,
+    app_id          TEXT    NOT NULL,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS settings (

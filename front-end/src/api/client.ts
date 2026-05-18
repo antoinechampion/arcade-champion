@@ -7,8 +7,8 @@ const games: Game[] = [
     platform: 'Fightcade',
     releaseYear: 1999,
     developer: 'Capcom',
-    imageUrl: 'https://i.pinimg.com/736x/a8/db/46/a8db46f121860572350471b0e4405c32.jpg',
-    bannerUrl: 'https://d1lss44hh2trtw.cloudfront.net/resize?type=webp&url=https%3A%2F%2Fshacknews-www.s3.amazonaws.com%2Fassets%2Farticle%2F2024%2F07%2F29%2F3rd-strike-header_feature.jpg&width=1032&sign=XEMEx9JTW7qcjq1YKxMlyIOL40hjUM0eBKwjqW6KlMU',
+    coverFilename: '1_cover_mock.jpg',
+    bannerFilename: '1_banner_mock.jpg',
     launchConfig: { gameId: 'sfiii3n' },
   },
   {
@@ -17,8 +17,8 @@ const games: Game[] = [
     platform: 'MAME',
     releaseYear: 2000,
     developer: 'Capcom',
-    imageUrl: 'https://wiki.supercombo.gg/images/thumb/2/29/MVSC2_Cover_Art.jpg/300px-MVSC2_Cover_Art.jpg',
-    bannerUrl: '',
+    coverFilename: '2_cover_mock.jpg',
+    bannerFilename: '2_banner_mock.jpg',
     launchConfig: { driverName: 'mvsc2' },
   },
   {
@@ -27,8 +27,8 @@ const games: Game[] = [
     platform: 'Fightcade',
     releaseYear: 1998,
     developer: 'SNK',
-    imageUrl: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1y8h.jpg',
-    bannerUrl: '',
+    coverFilename: '3_cover_mock.jpg',
+    bannerFilename: '3_banner_mock.jpg',
     launchConfig: { gameId: 'kof98' },
   },
   {
@@ -37,8 +37,8 @@ const games: Game[] = [
     platform: 'Steam',
     releaseYear: 2023,
     developer: 'Capcom',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/94/Street_Fighter_6_box_art.jpg/250px-Street_Fighter_6_box_art.jpg',
-    bannerUrl: '',
+    coverFilename: '4_cover_mock.jpg',
+    bannerFilename: '4_banner_mock.jpg',
     launchConfig: { appId: '1364780' },
   },
   {
@@ -47,8 +47,8 @@ const games: Game[] = [
     platform: 'Fightcade',
     releaseYear: 1992,
     developer: 'Capcom',
-    imageUrl: 'https://i.redd.it/2rgdsgr7p3pc1.jpeg',
-    bannerUrl: '',
+    coverFilename: '5_cover_mock.jpg',
+    bannerFilename: '5_banner_mock.jpg',
     launchConfig: { gameId: 'sf2ce' },
   },
   {
@@ -57,8 +57,8 @@ const games: Game[] = [
     platform: 'Steam',
     releaseYear: 2021,
     developer: 'Arc System Works',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/7/7d/Guilty_Gear_Strive.jpg',
-    bannerUrl: '',
+    coverFilename: '6_cover_mock.jpg',
+    bannerFilename: '6_banner_mock.jpg',
     launchConfig: { appId: '1384160' },
   },
   {
@@ -67,8 +67,8 @@ const games: Game[] = [
     platform: 'Steam',
     releaseYear: 2024,
     developer: 'Bandai Namco',
-    imageUrl: 'https://cdn2.steamgriddb.com/grid/a9283100ad06971a29f5382f6ab25ea4.jpg',
-    bannerUrl: '',
+    coverFilename: '7_cover_mock.jpg',
+    bannerFilename: '7_banner_mock.jpg',
     launchConfig: { appId: '1778820' },
   },
   {
@@ -77,8 +77,8 @@ const games: Game[] = [
     platform: 'Fightcade',
     releaseYear: 1999,
     developer: 'SNK',
-    imageUrl: 'https://m.media-amazon.com/images/M/MV5BNmM2OGEwMDItNzhjNy00MWJkLTljY2EtYTk3MjA5ZmM5ZWE1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
-    bannerUrl: '',
+    coverFilename: '8_cover_mock.jpg',
+    bannerFilename: '8_banner_mock.jpg',
     launchConfig: { gameId: 'garou' },
   },
   {
@@ -87,8 +87,8 @@ const games: Game[] = [
     platform: 'Fightcade',
     releaseYear: 2004,
     developer: 'SNK',
-    imageUrl: 'https://www.everyeye.it/public/immagini/14072017/samurai-shodown-v-special_notizia.jpg',
-    bannerUrl: '',
+    coverFilename: '9_cover_mock.jpg',
+    bannerFilename: '9_banner_mock.jpg',
     launchConfig: { gameId: 'samsh5sp' },
   },
   {
@@ -97,13 +97,17 @@ const games: Game[] = [
     platform: 'MAME',
     releaseYear: 2000,
     developer: 'SNK',
-    imageUrl: 'https://static.wikia.nocookie.net/metalslug/images/f/ff/IMG_20190220_164837.jpg/revision/latest?cb=20190220144903',
-    bannerUrl: '',
+    coverFilename: '10_cover_mock.jpg',
+    bannerFilename: '10_banner_mock.jpg',
     launchConfig: { driverName: 'mslug3' },
   },
 ]
 
 let nextId = 11
+
+export function imageUrl(filename: string): string {
+  return `/images/${filename}`
+}
 
 export async function fetchRecentlyPlayed(): Promise<Game[]> {
   return games
@@ -129,8 +133,8 @@ export async function createGame(input: GameInput): Promise<Game> {
     platform: input.platform,
     releaseYear: input.releaseYear,
     developer: input.developer,
-    imageUrl: '',
-    bannerUrl: '',
+    coverFilename: '',
+    bannerFilename: '',
     launchConfig: input.launchConfig,
   }
   games.push(newGame)
@@ -145,8 +149,8 @@ export async function updateGame(id: string, input: GameInput): Promise<Game> {
     platform: input.platform,
     releaseYear: input.releaseYear,
     developer: input.developer,
-    imageUrl: games[idx].imageUrl,
-    bannerUrl: games[idx].bannerUrl,
+    coverFilename: games[idx].coverFilename,
+    bannerFilename: games[idx].bannerFilename,
     launchConfig: input.launchConfig,
   }
   games[idx] = updated

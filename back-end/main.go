@@ -16,6 +16,11 @@ func main() {
 	}
 	defer db.Close()
 
+	imagesDir, err := database.ImagesDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/api/search", handlers.SearchQueryHandler(db)).
 		Methods("GET")
@@ -23,6 +28,9 @@ func main() {
 		Methods("GET", "PUT")
 	r.HandleFunc("/api/launch", handlers.LaunchGameHandler(db)).
 		Methods("POST")
+	r.PathPrefix("/images/").Handler(
+		http.StripPrefix("/images/", http.FileServer(http.Dir(imagesDir))),
+	)
 
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)

@@ -20,8 +20,8 @@ export interface Game {
   platform: Platform
   releaseYear: number
   developer: string
-  imageUrl: string
-  bannerUrl: string
+  coverFilename: string
+  bannerFilename: string
   launchConfig: LaunchConfig
 }
 

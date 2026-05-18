@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 import FeaturedGame from '@/components/home/FeaturedGame.vue'
 import RecentlyPlayed from '@/components/home/RecentlyPlayed.vue'
 import AllGames from '@/components/home/AllGames.vue'
-import { fetchRecentlyPlayed } from '@/api/client'
+import { fetchRecentlyPlayed, imageUrl } from '@/api/client'
 import { usePageNavigation } from '@/composables/navigation'
 import type { Game } from '@/api/types'
 
@@ -27,7 +27,7 @@ const recentGames = computed(() => games.value.slice(1))
     :platform="featuredGame.platform"
     :release-year="featuredGame.releaseYear"
     :developer="featuredGame.developer"
-    :banner-url="featuredGame.bannerUrl"
+    :banner-url="imageUrl(featuredGame.bannerFilename)"
   />
 
   <RecentlyPlayed :games="recentGames" />

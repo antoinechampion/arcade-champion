@@ -15,13 +15,9 @@ describe('fetchRecentlyPlayed', () => {
       expect(game.platform).toBeTruthy()
       expect(game.releaseYear).toBeGreaterThan(0)
       expect(game.developer).toBeTruthy()
-      expect(game.imageUrl).toBeTruthy()
+      expect(game.coverFilename).toBeTruthy()
+      expect(game.bannerFilename).toBeTruthy()
     }
-  })
-
-  it('includes a banner URL on the first game', async () => {
-    const games = await fetchRecentlyPlayed()
-    expect(games[0].bannerUrl).toBeTruthy()
   })
 })
 

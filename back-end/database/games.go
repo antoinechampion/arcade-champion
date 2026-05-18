@@ -6,18 +6,18 @@ import (
 )
 
 type Game struct {
-	ID          int64   `json:"id,string"`
-	Title       string  `json:"title"`
-	Platform    string  `json:"platform"`
-	ReleaseYear int     `json:"releaseYear"`
-	Developer   string  `json:"developer"`
-	ImageURL    string  `json:"imageUrl"`
-	BannerURL   *string `json:"bannerUrl,omitempty"`
-	AppID       string  `json:"appId"`
+	ID             int64  `json:"id,string"`
+	Title          string `json:"title"`
+	Platform       string `json:"platform"`
+	ReleaseYear    int    `json:"releaseYear"`
+	Developer      string `json:"developer"`
+	CoverFilename  string `json:"coverFilename"`
+	BannerFilename string `json:"bannerFilename"`
+	AppID          string `json:"appId"`
 }
 
 func (d *DB) ListGames(query string) ([]Game, error) {
-	q := `SELECT id, title, platform, release_year, developer, image_url, banner_url, app_id
+	q := `SELECT id, title, platform, release_year, developer, cover_filename, banner_filename, app_id
 		FROM games`
 	var args []any
 	if query != "" {
@@ -35,7 +35,7 @@ func (d *DB) ListGames(query string) ([]Game, error) {
 	var games []Game
 	for rows.Next() {
 		var g Game
-		if err := rows.Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.ImageURL, &g.BannerURL, &g.AppID); err != nil {
+		if err := rows.Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.CoverFilename, &g.BannerFilename, &g.AppID); err != nil {
 			return nil, err
 		}
 		games = append(games, g)
@@ -46,9 +46,9 @@ func (d *DB) ListGames(query string) ([]Game, error) {
 func (d *DB) GetGame(id int64) (Game, error) {
 	var g Game
 	err := d.db.QueryRow(
-		`SELECT id, title, platform, release_year, developer, image_url, banner_url, app_id
+		`SELECT id, title, platform, release_year, developer, cover_filename, banner_filename, app_id
 		FROM games WHERE id = ?`, id,
-	).Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.ImageURL, &g.BannerURL, &g.AppID)
+	).Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.CoverFilename, &g.BannerFilename, &g.AppID)
 	if err == sql.ErrNoRows {
 		return g, fmt.Errorf("game %d not found", id)
 	}
@@ -57,9 +57,9 @@ func (d *DB) GetGame(id int64) (Game, error) {
 
 func (d *DB) CreateGame(g Game) (Game, error) {
 	res, err := d.db.Exec(
-		`INSERT INTO games (title, platform, release_year, developer, image_url, banner_url, app_id)
+		`INSERT INTO games (title, platform, release_year, developer, cover_filename, banner_filename, app_id)
 		VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		g.Title, g.Platform, g.ReleaseYear, g.Developer, g.ImageURL, g.BannerURL, g.AppID,
+		g.Title, g.Platform, g.ReleaseYear, g.Developer, g.CoverFilename, g.BannerFilename, g.AppID,
 	)
 	if err != nil {
 		return g, err
@@ -70,9 +70,9 @@ func (d *DB) CreateGame(g Game) (Game, error) {
 
 func (d *DB) UpdateGame(id int64, g Game) (Game, error) {
 	res, err := d.db.Exec(
-		`UPDATE games SET title = ?, platform = ?, release_year = ?, developer = ?, image_url = ?, banner_url = ?, app_id = ?, updated_at = CURRENT_TIMESTAMP
+		`UPDATE games SET title = ?, platform = ?, release_year = ?, developer = ?, cover_filename = ?, banner_filename = ?, app_id = ?, updated_at = CURRENT_TIMESTAMP
 		WHERE id = ?`,
-		g.Title, g.Platform, g.ReleaseYear, g.Developer, g.ImageURL, g.BannerURL, g.AppID, id,
+		g.Title, g.Platform, g.ReleaseYear, g.Developer, g.CoverFilename, g.BannerFilename, g.AppID, id,
 	)
 	if err != nil {
 		return g, err
@@ -106,9 +106,9 @@ func (d *DB) DeleteGame(id int64) error {
 func (d *DB) FindGameByAppId(platform string, appId string) (Game, error) {
 	var g Game
 	err := d.db.QueryRow(
-		`SELECT id, title, platform, release_year, developer, image_url, banner_url, app_id
+		`SELECT id, title, platform, release_year, developer, cover_filename, banner_filename, app_id
 		FROM games WHERE app_id = ? AND platform = ?`, appId, platform,
-	).Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.ImageURL, &g.BannerURL, &g.AppID)
+	).Scan(&g.ID, &g.Title, &g.Platform, &g.ReleaseYear, &g.Developer, &g.CoverFilename, &g.BannerFilename, &g.AppID)
 
 	if err == sql.ErrNoRows {
 		return g, fmt.Errorf("game %s not found", appId)

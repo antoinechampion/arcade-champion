@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import GameCard from '@/components/design-system/GameCard.vue'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
+import { imageUrl } from '@/api/client'
 import type { Game } from '@/api/types'
 
 const props = defineProps<{
@@ -65,7 +66,7 @@ function scrollToSelected() {
           :platform="game.platform"
           :release-year="game.releaseYear"
           :developer="game.developer"
-          :image-url="game.imageUrl"
+          :image-url="imageUrl(game.coverFilename)"
           :selected="active && index === selectedIndex"
         />
       </div>
