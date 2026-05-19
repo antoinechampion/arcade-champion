@@ -2,6 +2,7 @@ package fightcade
 
 import (
 	"fmt"
+	"log"
 	"os/exec"
 	"runtime"
 )
@@ -34,7 +35,7 @@ func buildTrainingURL(emulator, gameid string) string {
 }
 
 func openURL(url string) error {
-	fmt.Println("opening url: %s", url)
+	log.Printf("opening url: %s\n", url)
 	switch runtime.GOOS {
 	case "darwin":
 		return exec.Command("open", url).Start()
