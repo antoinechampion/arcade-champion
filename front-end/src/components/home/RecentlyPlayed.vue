@@ -51,14 +51,20 @@ const { active } = useComponentNavigation('recentlyPlayed', {
 function scrollToSelected() {
   const container = containerRef.value
   if (!container) return
-  const card = container.children[selectedIndex.value] as HTMLElement | undefined
-  if (!card) return
-  const clipWidth = container.parentElement!.getBoundingClientRect().width
-  const cardLeft = card.offsetLeft
-  const cardWidth = card.offsetWidth
-  const listWidth = container.scrollWidth
-  const target = -(cardLeft - clipWidth / 2 + cardWidth / 2)
-  const minTranslate = -(listWidth - clipWidth)
+  const clip = container.parentElement
+  if (!clip) return
+  const clipWidth = clip.clientWidth
+  const cards = container.children
+  if (!cards.length) return
+  const cardWidth = (cards[0] as HTMLElement).offsetWidth
+  const style = getComputedStyle(container)
+  const gap = parseFloat(style.columnGap) || parseFloat(style.gap) || 0
+  const paddingLeft = parseFloat(style.paddingLeft) || 0
+  const paddingRight = parseFloat(style.paddingRight) || 0
+  const cardCenter = paddingLeft + selectedIndex.value * (cardWidth + gap) + cardWidth / 2
+  const target = clipWidth / 2 - cardCenter
+  const totalWidth = paddingLeft + cards.length * cardWidth + (cards.length - 1) * gap + paddingRight
+  const minTranslate = -(totalWidth - clipWidth)
   translateX.value = Math.max(minTranslate, Math.min(0, target))
 }
 </script>
@@ -86,6 +92,8 @@ function scrollToSelected() {
 <style scoped>
 .recently-played-clip {
   overflow: hidden;
+  padding: 2rem 0;
+  margin: -2rem 0;
 }
 
 .recently-played-list {
