@@ -93,9 +93,10 @@ watch(() => props.visible, (visible) => {
             <button
               v-for="(key, cIdx) in keys"
               :key="key"
-              class="keyboard-key"
+              class="keyboard-key plasma-border"
               :class="{
                 active: row === rIdx && col === cIdx,
+                'plasma-border-active': row === rIdx && col === cIdx,
                 wide: key === 'SPACE' || key === 'BACKSPACE' || key === 'DONE',
               }"
               @click="row = rIdx; col = cIdx; pressKey()"
@@ -170,6 +171,7 @@ watch(() => props.visible, (visible) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -178,9 +180,30 @@ watch(() => props.visible, (visible) => {
   padding: 0 1.5rem;
 }
 
+.keyboard-key::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 80%, var(--color-primary-dark) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 70% 20%, var(--color-primary-light) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 55% at 60% 90%, var(--color-accent) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.keyboard-key.active::before {
+  opacity: 1;
+}
+
 .keyboard-key.active {
-  background: var(--color-primary);
-  box-shadow: 0 0 20px var(--color-glow);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 0 30px var(--color-glow),
+    0 0 60px rgba(124, 92, 224, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .fade-enter-active,
