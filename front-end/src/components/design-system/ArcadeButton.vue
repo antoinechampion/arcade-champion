@@ -31,11 +31,7 @@ defineProps<{
   cursor: pointer;
   outline: none;
   overflow: hidden;
-  transform: scale(1);
-  transform-origin: center center;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
   box-shadow:
     0 0 20px rgba(255, 255, 255, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -104,15 +100,9 @@ defineProps<{
 .arcade-btn:focus-visible,
 .arcade-btn:focus,
 .arcade-btn.focused {
-  transform: scale(1.08);
   box-shadow:
     0 0 30px var(--color-glow),
     0 0 60px rgba(124, 92, 224, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.arcade-btn:active {
-  transform: scale(0.97);
-  transition-duration: 0.1s;
 }
 </style>

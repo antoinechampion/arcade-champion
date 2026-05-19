@@ -28,11 +28,7 @@ defineProps<{
   border-radius: 0.75rem;
   overflow: hidden;
   cursor: pointer;
-  transform: scale(1);
-  transform-origin: center center;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
 
 .card-img {
@@ -61,16 +57,10 @@ defineProps<{
   gap: 0.25rem;
   background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, transparent 150%);
   opacity: 0;
-  transform: translateY(0.5rem);
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
 .game-card.selected {
-  z-index: 1;
-  overflow: visible;
-  transform: scale(1.20);
   box-shadow:
     0 0 20px var(--color-glow),
     0 0 40px rgba(124, 92, 224, 0.15);
@@ -78,6 +68,5 @@ defineProps<{
 
 .game-card.selected .info {
   opacity: 1;
-  transform: translateY(0);
 }
 </style>
