@@ -59,10 +59,6 @@ export async function deleteGame(id: string): Promise<void> {
   if (!res.ok) throw new Error(`Failed to delete game: ${res.status}`)
 }
 
-export async function openKeyboard(): Promise<void> {
-  // TODO: replace with actual backend call that spawns steam-osk
-}
-
 interface BackendSearchResult {
   game: string
   appId: string

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { openKeyboard } from '@/api/client'
 
-const props = defineProps<{
+defineProps<{
   focused?: boolean
   placeholder?: string
+}>()
+
+defineEmits<{
+  'open-keyboard': []
 }>()
 
 const model = defineModel<string>()
@@ -18,12 +21,9 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-watch(() => props.focused, (focused) => {
-  if (focused) {
-    inputRef.value?.focus()
-    openKeyboard()
-  } else {
-    inputRef.value?.blur()
+watch(() => model.value, () => {
+  if (inputRef.value) {
+    inputRef.value.value = model.value ?? ''
   }
 })
 </script>
@@ -32,10 +32,11 @@ watch(() => props.focused, (focused) => {
   <div class="arcade-input-wrapper plasma-border" :class="{ focused, 'plasma-border-active': focused }">
     <input
       ref="inputRef"
-      v-model="model"
+      :value="model"
       type="text"
       :placeholder="placeholder"
       class="arcade-input"
+      readonly
       @keydown="onKeydown"
     />
   </div>
@@ -46,9 +47,7 @@ watch(() => props.focused, (focused) => {
   display: inline-flex;
   border-radius: 8px;
   overflow: hidden;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 

@@ -47,9 +47,8 @@ describe('AllGames', () => {
 
   it('filters games when searching', async () => {
     const wrapper = await mountAllGames()
-    const input = wrapper.find('.arcade-input')
-    await input.setValue('Alpha')
-    await input.trigger('keydown', { key: 'Enter' })
+    ;(wrapper.vm as unknown as { searchQuery: string }).searchQuery = 'Alpha'
+    await wrapper.find('.arcade-btn').trigger('click')
     await flushPromises()
     expect(wrapper.findAll('.game-card')).toHaveLength(2)
     expect(wrapper.findAll('[data-section]')).toHaveLength(1)
@@ -57,9 +56,8 @@ describe('AllGames', () => {
 
   it('shows empty state when no results', async () => {
     const wrapper = await mountAllGames()
-    const input = wrapper.find('.arcade-input')
-    await input.setValue('zzzzz')
-    await input.trigger('keydown', { key: 'Enter' })
+    ;(wrapper.vm as unknown as { searchQuery: string }).searchQuery = 'zzzzz'
+    await wrapper.find('.arcade-btn').trigger('click')
     await flushPromises()
     expect(wrapper.findAll('.game-card')).toHaveLength(0)
     expect(wrapper.text()).toContain('No games found.')

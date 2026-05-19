@@ -3,6 +3,7 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import GameCard from '@/components/design-system/GameCard.vue'
 import ArcadeButton from '@/components/design-system/ArcadeButton.vue'
 import ArcadeTextInput from '@/components/design-system/ArcadeTextInput.vue'
+import ArcadeKeyboard from '@/components/design-system/ArcadeKeyboard.vue'
 import { fetchAllGames, imageUrl } from '@/api/client'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 import type { Game } from '@/api/types'
@@ -27,6 +28,7 @@ const currentCardIdx = ref(0)
 const searchBarRef = ref<HTMLElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 
+const keyboardVisible = ref(false)
 const searchInputFocused = computed(() => active.value && focusArea.value === 'search' && searchFocusIdx.value === 0)
 const searchButtonFocused = computed(() => active.value && focusArea.value === 'search' && searchFocusIdx.value === 1)
 
@@ -81,6 +83,7 @@ function handleSearchNav(command: NavCommand): boolean {
     case 'up':
       return false
     case 'confirm':
+      if (searchFocusIdx.value === 0) { keyboardVisible.value = true; return true }
       if (searchFocusIdx.value === 1) { search(); return true }
       return true
     default:
@@ -175,9 +178,6 @@ function scrollToFocused() {
 
 watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFocused)
 
-function onSearchKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') search()
-}
 </script>
 
 <template>
@@ -189,7 +189,6 @@ function onSearchKeydown(e: KeyboardEvent) {
         v-model="searchQuery"
         placeholder="Search games…"
         :focused="searchInputFocused"
-        @keydown="onSearchKeydown"
       />
       <ArcadeButton label="Search" :focused="searchButtonFocused" @click="search" />
       </div>
@@ -217,6 +216,12 @@ function onSearchKeydown(e: KeyboardEvent) {
     </div>
 
     <p v-if="!games.length" class="px-12 opacity-50 text-sm">No games found.</p>
+
+    <ArcadeKeyboard
+      v-model="searchQuery"
+      :visible="keyboardVisible"
+      @close="keyboardVisible = false"
+    />
   </section>
 </template>
 
