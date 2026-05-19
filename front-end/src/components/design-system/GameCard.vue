@@ -28,7 +28,7 @@ defineProps<{
   border-radius: 0.75rem;
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow, transform 0.3s ease;
 }
 
 .card-img {
@@ -64,6 +64,11 @@ defineProps<{
   box-shadow:
     0 0 20px var(--color-glow),
     0 0 40px rgba(124, 92, 224, 0.15);
+  transform: scale(1.05);
+}
+
+.game-card.selected::after {
+  padding: 3px;
 }
 
 .game-card.selected .info {
