@@ -28,6 +28,8 @@ defineProps<{
   border-radius: 0.75rem;
   overflow: hidden;
   cursor: pointer;
+  transform: scale(1);
+  transform-origin: center center;
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;

@@ -85,7 +85,7 @@ function scrollToSelected() {
 
 <style scoped>
 .recently-played-clip {
-  overflow-x: clip;
+  overflow: hidden;
 }
 
 .recently-played-list {
