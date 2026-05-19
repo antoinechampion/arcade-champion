@@ -2,11 +2,15 @@
 import { ref, computed } from 'vue'
 import GameCard from '@/components/design-system/GameCard.vue'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
-import { imageUrl, launchGame } from '@/api/client'
+import { imageUrl } from '@/api/client'
 import type { Game } from '@/api/types'
 
 const props = defineProps<{
   games: Game[]
+}>()
+
+const emit = defineEmits<{
+  launch: [game: Game]
 }>()
 
 const selectedIndex = ref(0)
@@ -34,7 +38,7 @@ const { active } = useComponentNavigation('recentlyPlayed', {
     }
     if (command === 'confirm') {
       const game = props.games[selectedIndex.value]
-      if (game) launchGame(game.platform, game.appId)
+      if (game) emit('launch', game)
       return true
     }
     return false

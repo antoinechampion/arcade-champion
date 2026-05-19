@@ -31,7 +31,7 @@ func (m Mame) Search(query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func (m Mame) Launch(game database.Game) error {
+func (m Mame) Launch(game database.Game, _ LaunchOptions) error {
 	mamePath, err := m.db.MamePath()
 	if err != nil {
 		return err

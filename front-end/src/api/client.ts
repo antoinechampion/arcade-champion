@@ -76,11 +76,11 @@ export async function searchPlatformGames(platform: Platform, query: string): Pr
   return data.map((r) => ({ name: r.game, platformId: r.appId }))
 }
 
-export async function launchGame(platform: Platform, appId: string): Promise<void> {
+export async function launchGame(platform: Platform, appId: string, launchOptions?: Record<string, string>): Promise<void> {
   const res = await fetch('/api/launch', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ platform: platform, appId }),
+    body: JSON.stringify({ platform, appId, launchOptions }),
   })
   if (!res.ok) throw new Error(`Failed to launch game: ${res.status}`)
 }

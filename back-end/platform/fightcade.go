@@ -60,12 +60,47 @@ func (f Fightcade) Search(query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func (f Fightcade) Launch(game database.Game) error {
+func (f Fightcade) Launch(game database.Game, opts LaunchOptions) error {
+	mode := opts["mode"]
+	if mode == "" {
+		mode = "online"
+	}
+
 	creds, err := f.credentials()
 	if err != nil {
 		return err
 	}
 
-	_, err = fightcade.Lobby(context.Background(), creds, game.AppID)
-	return err
+	switch mode {
+	case "training", "arcade":
+		return f.launchOffline(creds, game.AppID, mode)
+	default:
+		_, err = fightcade.Lobby(context.Background(), creds, game.AppID)
+		return err
+	}
+}
+
+func (f Fightcade) launchOffline(creds fightcade.Credentials, appID, mode string) error {
+	sr, err := fightcade.Search(context.Background(), creds, appID)
+	if err != nil {
+		return err
+	}
+	f.storeCookie(creds, sr.Cookie)
+
+	var emulator, gameid string
+	for _, ch := range sr.Channels {
+		if ch.GameID == appID {
+			emulator = ch.Emulator
+			gameid = ch.GameID
+			break
+		}
+	}
+	if emulator == "" {
+		return fmt.Errorf("could not resolve emulator for %q", appID)
+	}
+
+	if mode == "training" {
+		return fightcade.Training(emulator, gameid)
+	}
+	return fightcade.Play(emulator, gameid)
 }

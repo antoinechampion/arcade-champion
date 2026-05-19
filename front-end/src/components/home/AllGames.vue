@@ -3,9 +3,13 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import GameCard from '@/components/design-system/GameCard.vue'
 import ArcadeButton from '@/components/design-system/ArcadeButton.vue'
 import ArcadeTextInput from '@/components/design-system/ArcadeTextInput.vue'
-import { fetchAllGames, launchGame, imageUrl } from '@/api/client'
+import { fetchAllGames, imageUrl } from '@/api/client'
 import { useComponentNavigation, type NavCommand } from '@/composables/navigation'
 import type { Game } from '@/api/types'
+
+const emit = defineEmits<{
+  launch: [game: Game]
+}>()
 
 const COLUMNS = 7
 
@@ -132,7 +136,7 @@ function handleCardsNav(command: NavCommand): boolean {
       return true
     case 'confirm': {
       const game = sections.value[currentSectionIdx.value]?.games[currentCardIdx.value]
-      if (game) launchGame(game.platform, game.appId)
+      if (game) emit('launch', game)
       return true
     }
     default:

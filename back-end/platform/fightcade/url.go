@@ -34,6 +34,7 @@ func buildTrainingURL(emulator, gameid string) string {
 }
 
 func openURL(url string) error {
+	fmt.Println("opening url: %s", url)
 	switch runtime.GOOS {
 	case "darwin":
 		return exec.Command("open", url).Start()

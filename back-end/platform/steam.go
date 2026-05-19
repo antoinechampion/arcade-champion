@@ -33,7 +33,7 @@ func (s Steam) Search(query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func (s Steam) Launch(game database.Game) error {
+func (s Steam) Launch(game database.Game, _ LaunchOptions) error {
 	url := fmt.Sprintf("steam://run/%s", game.AppID)
 	switch runtime.GOOS {
 	case "darwin":
