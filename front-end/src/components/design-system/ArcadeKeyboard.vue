@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { lockNavigation, unlockNavigation } from '@/composables/navigation'
 
 const props = defineProps<{
   visible: boolean
@@ -76,8 +77,10 @@ function pressKey() {
 
 watch(() => props.visible, (visible) => {
   if (visible) {
+    lockNavigation()
     window.addEventListener('keydown', onKeydown, true)
   } else {
+    unlockNavigation()
     window.removeEventListener('keydown', onKeydown, true)
   }
 }, { immediate: true })

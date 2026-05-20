@@ -1,5 +1,9 @@
 import { ref, provide, inject, onMounted, onUnmounted, watchEffect, type InjectionKey, type Ref } from 'vue'
 
+const navigationLocked = ref(false)
+export function lockNavigation() { navigationLocked.value = true }
+export function unlockNavigation() { navigationLocked.value = false }
+
 export type NavDirection = 'up' | 'down' | 'left' | 'right'
 export type NavCommand = NavDirection | 'confirm'
 
@@ -64,6 +68,7 @@ export function usePageNavigation(zoneOrder: string[]) {
   }
 
   function onKeydown(e: KeyboardEvent) {
+    if (navigationLocked.value) return
     const command = KEY_MAP[e.key]
     if (!command) return
     e.preventDefault()
