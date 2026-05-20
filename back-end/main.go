@@ -9,6 +9,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func cors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Method == "OPTIONS" {
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	db, err := database.Open()
 	if err != nil {
@@ -44,6 +56,5 @@ func main() {
 		http.StripPrefix("/images/", http.FileServer(http.Dir(imagesDir))),
 	)
 
-	http.Handle("/", r)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", cors(r)))
 }

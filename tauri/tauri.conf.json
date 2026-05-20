@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.arcade-champion.app",
   "build": {
-    "beforeBuildCommand": "sh tauri/build-sidecar.sh && npm run build --prefix front-end",
-    "beforeDevCommand": "sh tauri/build-sidecar.sh && npm run dev --prefix front-end",
+    "beforeBuildCommand": "npm run build --prefix front-end",
+    "beforeDevCommand": "npm run dev --prefix front-end",
     "devUrl": "http://localhost:5173",
     "frontendDist": "../front-end/dist"
   },
@@ -22,12 +22,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "externalBin": ["binaries/arcade-champion-backend"]
+    "targets": "all"
   },
-  "plugins": {
-    "shell": {
-      "open": true
-    }
-  }
+  "plugins": {}
 }
