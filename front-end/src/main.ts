@@ -18,3 +18,10 @@ const router = createRouter({
 
 createApp(RouterView).use(router).mount('#app')
 startGamepadPolling()
+
+document.body.focus()
+document.addEventListener('keydown', (e) => {
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+    e.preventDefault()
+  }
+})

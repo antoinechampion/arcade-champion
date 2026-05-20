@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicoulaj/tauri/v2/packages/cli/schema.json",
+  "productName": "Arcade Champion",
+  "version": "0.1.0",
+  "identifier": "com.arcade-champion.app",
+  "build": {
+    "beforeBuildCommand": "sh tauri/build-sidecar.sh && npm run build --prefix front-end",
+    "beforeDevCommand": "sh tauri/build-sidecar.sh && npm run dev --prefix front-end",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../front-end/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Arcade Champion",
+        "fullscreen": true,
+        "decorations": false,
+        "resizable": false
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "externalBin": ["binaries/arcade-champion-backend"]
+  },
+  "plugins": {
+    "shell": {
+      "open": true
+    }
+  }
+}

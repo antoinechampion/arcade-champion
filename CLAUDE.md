@@ -5,15 +5,17 @@ This file provides guidance on how to work with this repository.
 ## Project Overview
 
 Arcade Champion powers homemade arcade machines running Bazzite OS. Three components:
-1. **Pre-install scripts** — configure Bazzite and install dependencies
-2. **Front-end** (`front-end/`) — kiosk-mode game selector, navigable with an arcade stick
-3. **Back-end** — game library manager supporting Steam, Fightcade, and classic MAME
+1. **Front-end** (`front-end/`) — kiosk-mode game selector, navigable with arcade stick/gamepad
+2. **Back-end** (`back-end/`) — Go game library manager supporting Steam, Fightcade, and MAME
+3. **Shell** (planned: Tauri, `tauri/`) — bundles front-end + back-end sidecar into a kiosk app with window management for game launch/refocus
 
 ## Tech Stack
 
-- **Front-end:** Vue 3 (Composition API) + TypeScript + Vite + Pinia. Tailwind CSS with semantic tokens. CSS variables for theming.
-- **Back-end:** Go + gorilla/mux
-- **Target platform:** Bazzite OS (Fedora Atomic-based, runs on x86_64 arcade cabinets)
+- **Front-end:** Vue 3 (Composition API) + TypeScript + Vite + vue-router. Tailwind CSS v4. CSS variables for theming. WebKitGTK on Linux (via Tauri), WKWebView on macOS.
+- **Back-end:** Go + gorilla/mux — runs as a Tauri sidecar
+- **Shell:** Tauri v2 (Rust) — kiosk window, sidecar lifecycle, window hide/show for game focus
+- **Target platform:** Bazzite OS (Fedora Atomic-based, x86_64 arcade cabinets). Dev on macOS.
+- **Navigation:** Gamepad API + custom spatial navigation system (`composables/navigation.ts`). Built-in virtual keyboard for text input.
 
 ## API Conventions
 
