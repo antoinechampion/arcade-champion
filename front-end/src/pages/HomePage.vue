@@ -5,6 +5,7 @@ import FeaturedGame from '@/components/home/FeaturedGame.vue'
 import RecentlyPlayed from '@/components/home/RecentlyPlayed.vue'
 import AllGames from '@/components/home/AllGames.vue'
 import LaunchOptions from '@/components/home/LaunchOptions.vue'
+import LaunchingOverlay from '@/components/design-system/LaunchingOverlay.vue'
 import { fetchRecentlyPlayed, launchGame, imageUrl } from '@/api/client'
 import { usePageNavigation } from '@/composables/navigation'
 import type { Game } from '@/api/types'
@@ -14,6 +15,7 @@ usePageNavigation(['featured', 'recentlyPlayed', 'allGames'])
 
 const games = ref<Game[]>([])
 const pendingGame = ref<Game | null>(null)
+const launching = ref(false)
 
 onMounted(async () => {
   games.value = await fetchRecentlyPlayed()
@@ -22,11 +24,17 @@ onMounted(async () => {
 const featuredGame = computed(() => games.value[0])
 const recentGames = computed(() => games.value.slice(1))
 
+function showLaunching() {
+  launching.value = true
+  setTimeout(() => { launching.value = false }, 10_000)
+}
+
 function handleLaunch(game: Game) {
   if (game.platform === 'Fightcade') {
     pendingGame.value = game
   } else {
     launchGame(game.platform, game.appId)
+    showLaunching()
   }
 }
 
@@ -37,6 +45,7 @@ function playFeatured() {
 function onLaunchModeSelected(mode: LaunchMode) {
   if (pendingGame.value) {
     launchGame(pendingGame.value.platform, pendingGame.value.appId, { mode })
+    showLaunching()
   }
   pendingGame.value = null
 }
@@ -66,6 +75,8 @@ function onLaunchCancelled() {
     @select="onLaunchModeSelected"
     @cancel="onLaunchCancelled"
   />
+
+  <LaunchingOverlay v-if="launching" />
 
   <footer class="flex justify-center py-8">
     <RouterLink to="/backoffice" class="backoffice-link">
