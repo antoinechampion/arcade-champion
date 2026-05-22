@@ -170,8 +170,8 @@ func (c *wsClient) leaveChannel(channelname string) error {
 	})
 }
 
-func (c *wsClient) setNotAway(ctx context.Context, channelname string) (map[string]any, error) {
-	return c.sendCmd(ctx, map[string]any{
+func (c *wsClient) setNotAway(channelname string) error {
+	return c.sendFire(map[string]any{
 		"req":         "stnoaway",
 		"channelname": channelname,
 	})

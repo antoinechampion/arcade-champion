@@ -199,7 +199,7 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 	}
 	defer func() { _ = client.leaveChannel(channelname) }()
 
-	if _, err := client.setNotAway(ctx, channelname); err != nil {
+	if err := client.setNotAway(channelname); err != nil {
 		log.Printf("[fightcade] Lobby: setNotAway error: %v", err)
 	}
 
