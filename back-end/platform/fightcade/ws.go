@@ -170,6 +170,13 @@ func (c *wsClient) leaveChannel(channelname string) error {
 	})
 }
 
+func (c *wsClient) setNotAway(ctx context.Context, channelname string) (map[string]any, error) {
+	return c.sendCmd(ctx, map[string]any{
+		"req":         "stnoaway",
+		"channelname": channelname,
+	})
+}
+
 func (c *wsClient) searchChannels(ctx context.Context, query string, page int) (map[string]any, error) {
 	return c.sendCmd(ctx, map[string]any{
 		"req":       "channels",

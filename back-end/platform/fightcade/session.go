@@ -179,6 +179,8 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 	username, _ := user["name"].(string)
 	log.Printf("[fightcade] Lobby: logged in as %q", username)
 
+	reportStatus(token)
+
 	channelname, err := resolveChannel(ctx, client, game)
 	if err != nil {
 		log.Printf("[fightcade] Lobby: resolveChannel failed: %v", err)
@@ -196,6 +198,10 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 		return nil, fmt.Errorf("failed to join %s: %v", channelname, joinResp["error"])
 	}
 	defer func() { _ = client.leaveChannel(channelname) }()
+
+	if _, err := client.setNotAway(ctx, channelname); err != nil {
+		log.Printf("[fightcade] Lobby: setNotAway error: %v", err)
+	}
 
 	emulator, _ := joinResp["emulator"].(string)
 	if emulator == "" {
@@ -278,7 +284,12 @@ func parseLobbyUsers(users []any, localUser string) ([]LobbyUser, int) {
 		if r, ok := u["rank"].(float64); ok {
 			rank = int(r)
 		}
-		playing := u["playing"] != nil
+		playing := false
+		if p, ok := u["playing"].(bool); ok {
+			playing = p
+		} else if _, ok := u["playing"].(map[string]any); ok {
+			playing = true
+		}
 		away, _ := u["away"].(bool)
 		if ca, _ := u["channel_away"].(bool); ca {
 			away = true

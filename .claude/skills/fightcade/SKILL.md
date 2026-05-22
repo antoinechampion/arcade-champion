@@ -19,6 +19,8 @@ Fightcade 2 is a Nativefier-wrapped Electron app loading `https://web.fightcade.
 | **REST API** | `https://www.fightcade.com/api/` | HTTP POST JSON | Replays, rankings, profiles, game info |
 | **GGPO relay** | `ggpo.fightcade.com:7000-7001` | Raw UDP/TCP | NAT hole-punching, P2P netplay |
 
+| **Status API** | `https://web.fightcade.com/fc2status/api/` | HTTP POST JSON | User online status reporting |
+
 A local Python binary (`fcade`) handles emulator launching and NAT traversal via the `fcade://` URL scheme.
 
 ## WebSocket protocol (GGS)
@@ -49,6 +51,12 @@ The `token` is used by the `fcade` binary for Status API calls. The `cookie` (`f
 {"req": "join", "channelname": "sfiii3nr1", "status": "available", "away": false, "idx": -1, "requestIdx": N}
 // Response: {result: 200, users: [...], emulator, gameid, ranked}
 
+// Set status to "Looking to play" (REQUIRED after join — without this you appear as "Not available")
+{"req": "stnoaway", "channelname": "sfiii3nr1", "requestIdx": N}
+
+// Set status to "Not available"
+{"req": "staway", "channelname": "sfiii3nr1", "requestIdx": N}
+
 // Leave channel (fire-and-forget, requestIdx: -1)
 {"req": "leave", "channelname": "sfiii3nr1", "requestIdx": -1}
 
@@ -58,6 +66,8 @@ The `token` is used by the `fcade` binary for Status API calls. The `cookie` (`f
 // Chat
 {"req": "chat", "channelname": "...", "text": "...", "requestIdx": -1}
 ```
+
+**Important:** Joining a channel alone does NOT make you "Looking to play". You must send `stnoaway` after joining to be challengeable. The `away` field in the join request is ignored by the server.
 
 ### Challenge → match flow
 
@@ -110,6 +120,7 @@ Pushed to both players after accept:
 | `accept` / `reject` | Response to your challenge |
 | `start` | Match starting — contains quark parameters |
 | `join` / `leave` | User entered/left the lobby |
+| `staway` / `stnoaway` | User changed availability status |
 | `chat` | Lobby chat message |
 | `msg` | Private message |
 
@@ -144,6 +155,41 @@ Single POST endpoint `https://www.fightcade.com/api/` — JSON body with `req` f
 | `searchrankings` | `gameid`, `offset`, `limit`, `byElo`, `recent` | Rankings |
 | `gameinfo` | `gameid` | Game details |
 | `searchevents` | `gameid?`, `offset`, `limit` | Tournaments |
+
+## Becoming "Looking to play" (required for challenges)
+
+Two things are needed to appear as "Looking to play" to other players:
+
+### 1. Status API call (after authentication, before joining)
+
+POST to the Status API to report your client as online:
+
+```
+POST https://web.fightcade.com/fc2status/api/
+User-Agent: fcade
+Content-Type: application/json
+```
+
+```json
+{
+  "req": "userstatus",
+  "token": "<session_token from login>",
+  "userstatus": "stcable",
+  "uuid": "<persistent device UUID>",
+  "guid": "<machine GUID (same as uuid on non-Windows)>",
+  "huid": "<MD5 of uuid>",
+  "version": "6",
+  "hash": "<MD5 of salted concatenation>"
+}
+```
+
+- `userstatus`: `"stwlan"` (WiFi) or `"stcable"` (wired)
+- `uuid`: zlib-compressed UUID stored in `~/.fcuid`
+- `hash`: `MD5("3jedoQ" + token + "qmkq0" + uuid + "dsnds" + guid + "sec or" + version + "2jden3" + userstatus + "llNjjha" + huid)`
+
+### 2. Send `stnoaway` (after joining a channel)
+
+After joining a channel, you must explicitly send `{"req": "stnoaway", "channelname": "..."}` to set your status to "Looking to play". Without this, the server defaults you to "Not available" regardless of the `status` and `away` fields in the join request.
 
 ## Rank system
 
