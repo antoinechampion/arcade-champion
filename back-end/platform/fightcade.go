@@ -60,7 +60,7 @@ func (f Fightcade) Search(query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-func (f Fightcade) Launch(game database.Game, opts LaunchOptions) error {
+func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOptions) error {
 	mode := opts["mode"]
 	if mode == "" {
 		mode = "online"
@@ -73,15 +73,15 @@ func (f Fightcade) Launch(game database.Game, opts LaunchOptions) error {
 
 	switch mode {
 	case "training", "arcade":
-		return f.launchOffline(creds, game.AppID, mode)
+		return f.launchOffline(ctx, creds, game.AppID, mode)
 	default:
-		_, err = fightcade.Lobby(context.Background(), creds, game.AppID)
+		_, err = fightcade.Lobby(ctx, creds, game.AppID)
 		return err
 	}
 }
 
-func (f Fightcade) launchOffline(creds fightcade.Credentials, appID, mode string) error {
-	sr, err := fightcade.Search(context.Background(), creds, appID)
+func (f Fightcade) launchOffline(ctx context.Context, creds fightcade.Credentials, appID, mode string) error {
+	sr, err := fightcade.Search(ctx, creds, appID)
 	if err != nil {
 		return err
 	}

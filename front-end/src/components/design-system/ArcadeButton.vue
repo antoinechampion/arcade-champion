@@ -22,8 +22,7 @@ defineProps<{
   gap: 0.5rem;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  background:
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.06) 100%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.06) 100%);
   backdrop-filter: blur(24px);
   color: var(--color-text);
   font-size: 1rem;

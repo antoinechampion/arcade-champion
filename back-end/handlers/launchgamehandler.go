@@ -36,7 +36,7 @@ func LaunchGameHandler(db *database.DB) http.HandlerFunc {
 			http.Error(w, "unknown platform", http.StatusBadRequest)
 			return
 		}
-		err = p.Launch(game, platform.LaunchOptions(dto.LaunchOptions))
+		err = p.Launch(r.Context(), game, platform.LaunchOptions(dto.LaunchOptions))
 		if err != nil {
 			log.Printf("failed to launch the game: %s", err)
 			http.Error(w, "", http.StatusInternalServerError)

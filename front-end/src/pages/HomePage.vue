@@ -14,9 +14,12 @@ import type { LaunchMode } from '@/components/home/LaunchOptions.vue'
 
 usePageNavigation(['featured', 'recentlyPlayed', 'allGames'])
 
+type LaunchPhase = 'matchmaking' | 'launching'
+
 const games = ref<Game[]>([])
 const pendingGame = ref<Game | null>(null)
-const launching = ref(false)
+const phase = ref<LaunchPhase | null>(null)
+let matchmakingAbort: AbortController | null = null
 
 onMounted(async () => {
   games.value = await fetchRecentlyPlayed()
@@ -25,9 +28,13 @@ onMounted(async () => {
 const featuredGame = computed(() => games.value[0])
 const recentGames = computed(() => games.value.slice(1))
 
+const overlayMessage = computed(() =>
+  phase.value === 'matchmaking' ? 'Matchmaking in progress…' : 'Launching…',
+)
+
 function showLaunching() {
-  launching.value = true
-  setTimeout(() => { launching.value = false }, 10_000)
+  phase.value = 'launching'
+  setTimeout(() => { phase.value = null }, 10_000)
 }
 
 function handleLaunch(game: Game) {
@@ -43,12 +50,36 @@ function playFeatured() {
   if (featuredGame.value) handleLaunch(featuredGame.value)
 }
 
+// Online matchmaking blocks until the server pairs us and the game starts, so we
+// keep the matchmaking overlay up for the whole request, then switch to launching.
+async function launchOnline(game: Game) {
+  phase.value = 'matchmaking'
+  matchmakingAbort = new AbortController()
+  try {
+    await launchGame(game.platform, game.appId, { mode: 'online' }, matchmakingAbort.signal)
+    showLaunching()
+  } catch {
+    // Aborted by the user or a real failure — either way return to idle.
+    phase.value = null
+  } finally {
+    matchmakingAbort = null
+  }
+}
+
+function cancelMatchmaking() {
+  matchmakingAbort?.abort()
+}
+
 function onLaunchModeSelected(mode: LaunchMode) {
-  if (pendingGame.value) {
-    launchGame(pendingGame.value.platform, pendingGame.value.appId, { mode })
+  const game = pendingGame.value
+  pendingGame.value = null
+  if (!game) return
+  if (mode === 'online') {
+    launchOnline(game)
+  } else {
+    launchGame(game.platform, game.appId, { mode })
     showLaunching()
   }
-  pendingGame.value = null
 }
 
 function onLaunchCancelled() {
@@ -79,7 +110,12 @@ function onLaunchCancelled() {
     @cancel="onLaunchCancelled"
   />
 
-  <LaunchingOverlay v-if="launching" />
+  <LaunchingOverlay
+    v-if="phase"
+    :message="overlayMessage"
+    :cancellable="phase === 'matchmaking'"
+    @cancel="cancelMatchmaking"
+  />
 
   <footer class="flex justify-center py-8">
     <RouterLink to="/backoffice" class="backoffice-link">

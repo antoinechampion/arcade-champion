@@ -1,12 +1,15 @@
 package platform
 
-import "back-end/database"
+import (
+	"back-end/database"
+	"context"
+)
 
 type LaunchOptions map[string]string
 
 type Platform interface {
 	Search(query string) ([]SearchResult, error)
-	Launch(game database.Game, opts LaunchOptions) error
+	Launch(ctx context.Context, game database.Game, opts LaunchOptions) error
 }
 
 type SearchResult struct {

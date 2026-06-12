@@ -1,10 +1,33 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
+
+const props = withDefaults(defineProps<{ message?: string; cancellable?: boolean }>(), {
+  message: 'Launching…',
+  cancellable: false,
+})
+
+const emit = defineEmits<{ cancel: [] }>()
+
+// Gamepad face buttons all surface as ' ' (confirm); Escape is the keyboard back.
+const CANCEL_KEYS = new Set(['Escape', ' '])
+
+function onKeydown(e: KeyboardEvent) {
+  if (props.cancellable && CANCEL_KEYS.has(e.key)) {
+    e.preventDefault()
+    e.stopPropagation()
+    emit('cancel')
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown, { capture: true }))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown, { capture: true }))
 </script>
 
 <template>
   <div class="launching-overlay">
     <div class="spinner" />
-    <p class="text">Launching…</p>
+    <p class="text">{{ message }}</p>
+    <p v-if="cancellable" class="hint">Press a button to cancel</p>
   </div>
 </template>
 
@@ -35,6 +58,11 @@
   font-size: 1.125rem;
   font-weight: 500;
   opacity: 0.8;
+}
+
+.hint {
+  font-size: 0.875rem;
+  opacity: 0.5;
 }
 
 @keyframes spin {
