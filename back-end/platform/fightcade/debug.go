@@ -3,4 +3,3 @@
 package fightcade
 
 const debugMode = true
-const debugTargetPlayer = "ArcadeChampion"

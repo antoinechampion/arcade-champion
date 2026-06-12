@@ -1,8 +1,96 @@
 package fightcade
 
 import (
+	"context"
+	"sync"
 	"testing"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
+
+// TestMatchmaker_FirstAcceptWinsAndCancelsRest challenges several candidates, has
+// the server start a match with one of them, and verifies the matchmaker returns
+// that opponent and cancels the other still-pending challenge.
+func TestMatchmaker_FirstAcceptWinsAndCancelsRest(t *testing.T) {
+	prevDelay, prevLaunch := retryDelay, launchGame
+	retryDelay = 5 * time.Millisecond
+	launchGame = func(emulator, gameID string, event *MatchEvent) {}
+	t.Cleanup(func() { retryDelay, launchGame = prevDelay, prevLaunch })
+
+	var mu sync.Mutex
+	challenged := map[string]int{} // name -> challengeid
+	cancelled := []string{}
+	started := false
+
+	client := startTestServer(t, func(conn *websocket.Conn, msg map[string]any) {
+		req, _ := msg["req"].(string)
+		name, _ := msg["username"].(string)
+		idx := msg["requestIdx"]
+
+		mu.Lock()
+		defer mu.Unlock()
+		switch req {
+		case "challenge":
+			cid, _ := msg["challengeid"].(float64)
+			challenged[name] = int(cid)
+			reply(conn, map[string]any{"req": req, "result": 200, "requestIdx": idx})
+			// Once both candidates have live challenges, "winner" accepts: the
+			// server pushes the authoritative start event.
+			if len(challenged) == 2 && !started {
+				started = true
+				reply(conn, map[string]any{
+					"req": "start", "user": map[string]any{"name": "winner"},
+					"quarkid": "1-2", "playerid": float64(0), "port": float64(6000),
+					"ranked": false, "token": "tok",
+				})
+			}
+		case "cancel":
+			cancelled = append(cancelled, name)
+			reply(conn, map[string]any{"req": req, "result": 200, "requestIdx": idx})
+		default:
+			reply(conn, map[string]any{"req": req, "result": 200, "requestIdx": idx})
+		}
+	})
+
+	mm := &matchmaker{client: client, config: lobbyConfig{
+		channelName: "chan",
+		username:    "me",
+		myRank:      3,
+		users: []LobbyUser{
+			{Name: "winner", Rank: 3},
+			{Name: "loser", Rank: 4},
+		},
+	}}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	match, err := mm.run(ctx)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if match.Opponent != "winner" {
+		t.Errorf("matched opponent = %q, want winner", match.Opponent)
+	}
+
+	// cancelPending runs in the challenge loop after the match is won; give it a moment.
+	deadline := time.Now().Add(time.Second)
+	for {
+		mu.Lock()
+		done := len(cancelled) == 1 && cancelled[0] == "loser"
+		mu.Unlock()
+		if done || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(2 * time.Millisecond)
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(cancelled) != 1 || cancelled[0] != "loser" {
+		t.Errorf("cancelled = %v, want [loser]", cancelled)
+	}
+}
 
 func TestParseStartEvent(t *testing.T) {
 	msg := map[string]any{

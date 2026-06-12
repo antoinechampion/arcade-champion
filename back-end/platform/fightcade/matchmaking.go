@@ -23,46 +23,70 @@ type lobbyConfig struct {
 }
 
 type matchmaker struct {
-	client *wsClient
-	config lobbyConfig
+	client  *wsClient
+	config  lobbyConfig
+	matched string // opponent we matched with; set once, read when cancelling pending challenges
 }
 
-
+// run drives matchmaking until a game starts, the context is cancelled, or the
+// connection drops. A match can be reached two ways — an opponent accepts one of
+// our outgoing challenges, or we accept an incoming one — but both converge on the
+// server's authoritative "start" event, which is the single signal that wins.
 func (m *matchmaker) run(ctx context.Context) (*MatchEvent, error) {
 	log.Printf("[fightcade] matchmaker: starting (channel=%s ranked=%v debugMode=%v)", m.config.channelName, m.config.ranked, debugMode)
 	if debugMode {
-		log.Printf("[fightcade] matchmaker: DEBUG MODE — will only challenge target=%q", debugTargetPlayer)
+		log.Printf("[fightcade] matchmaker: DEBUG MODE — dry run, no challenge or accept requests will be sent")
 	}
 
-	matchCh := make(chan *MatchEvent, 1)
-	challenged := make(chan struct{})
-	var closeOnce sync.Once
+	// matchCtx is cancelled the moment a match is won; the challenge loop watches
+	// it to stop challenging and cancel any still-pending challenges.
+	matchCtx, cancelMatch := context.WithCancel(ctx)
+	defer cancelMatch()
+
+	matchmakingCh := make(chan *MatchEvent, 1)
+	rejectCh := make(chan string, len(m.config.users)+1)
+	var matchOnce sync.Once
 
 	m.client.on("start", func(msg map[string]any) {
 		event := parseStartEvent(msg, m.config.token)
 		log.Printf("[fightcade] matchmaker: START event — opponent=%s quarkid=%s playerid=%d port=%d delay=%d ranked=%v",
 			event.Opponent, event.QuarkID, event.PlayerID, event.Port, event.Delay, event.Ranked)
-		launchGame(m.config.emulator, m.config.gameID, event)
-		matchCh <- event
+		// sync.Once makes it safe against duplicate start events (which would otherwise deadlock recvLoop on
+		// the second matchCh send) and double game launches.
+		matchOnce.Do(func() {
+			m.matched = event.Opponent
+			launchGame(m.config.emulator, m.config.gameID, event)
+			matchmakingCh <- event
+			cancelMatch()
+		})
 	})
 
 	m.client.on("challenge", func(msg map[string]any) {
-		select {
-		case <-challenged:
+		if matchCtx.Err() != nil {
 			log.Printf("[fightcade] matchmaker: incoming challenge ignored (already matched)")
 			return
-		default:
 		}
-		userObj, _ := msg["user"].(map[string]any)
-		challenger, _ := userObj["name"].(string)
-		log.Printf("[fightcade] matchmaker: incoming challenge from %q", challenger)
-		m.acceptIncoming(ctx, msg)
+		log.Printf("[fightcade] matchmaker: incoming challenge from %q", userName(msg))
+		m.acceptIncoming(matchCtx, msg)
 	})
 
-	go m.challengeLoop(ctx, challenged, &closeOnce)
+	m.client.on("accept", func(msg map[string]any) {
+		log.Printf("[fightcade] matchmaker: challenge ACCEPTED by %q", userName(msg))
+	})
+
+	m.client.on("reject", func(msg map[string]any) {
+		rejecter := userName(msg)
+		log.Printf("[fightcade] matchmaker: challenge REJECTED by %q", rejecter)
+		select {
+		case rejectCh <- rejecter:
+		default:
+		}
+	})
+
+	go m.challengeLoop(matchCtx, rejectCh)
 
 	select {
-	case match := <-matchCh:
+	case match := <-matchmakingCh:
 		log.Printf("[fightcade] matchmaker: match found — opponent=%s", match.Opponent)
 		return match, nil
 	case <-ctx.Done():
@@ -74,7 +98,36 @@ func (m *matchmaker) run(ctx context.Context) (*MatchEvent, error) {
 	}
 }
 
-func (m *matchmaker) challengeLoop(ctx context.Context, challenged chan struct{}, closeOnce *sync.Once) {
+// challengeNext sends a challenge to the next untried candidate. Returns false
+// when no candidates remain.
+func (m *matchmaker) challengeNext(ctx context.Context, candidates []LobbyUser, next *int, pending map[string]int) bool {
+	if *next >= len(candidates) {
+		return false
+	}
+	target := candidates[*next]
+	challengeID := *next + 1
+	*next++
+	log.Printf("[fightcade] challengeLoop: challenging %q (rank=%s(%d) challengeID=%d)",
+		target.Name, RankName(target.Rank), target.Rank, challengeID)
+	resp, err := m.client.challengeUser(ctx, target.Name, m.config.channelName, challengeID, m.config.ranked)
+	if err != nil {
+		log.Printf("[fightcade] challengeLoop: challengeUser error: %v", err)
+		return true
+	}
+	if !isSuccess(resp) {
+		log.Printf("[fightcade] challengeLoop: challengeUser failed: %v", resp)
+		return true
+	}
+	pending[target.Name] = challengeID
+	log.Printf("[fightcade] challengeLoop: challenge sent to %q, %d pending", target.Name, len(pending))
+	return true
+}
+
+// challengeLoop challenges candidates one at a time, pacing a new challenge every
+// retryDelay (or sooner when one is rejected). Challenges stay live, so several can
+// be outstanding at once; the first opponent to accept wins. When ctx is cancelled
+// — a match was won — every still-pending challenge except the winner's is cancelled.
+func (m *matchmaker) challengeLoop(ctx context.Context, rejectCh <-chan string) {
 	candidates := sortByRankDistance(m.config.users, m.config.myRank, m.config.username)
 	log.Printf("[fightcade] challengeLoop: %d candidates sorted by rank distance (my rank=%s(%d)):",
 		len(candidates), RankName(m.config.myRank), m.config.myRank)
@@ -83,100 +136,51 @@ func (m *matchmaker) challengeLoop(ctx context.Context, challenged chan struct{}
 		log.Printf("[fightcade] challengeLoop:   #%d %s rank=%s(%d) distance=%.0f", i+1, c.Name, RankName(c.Rank), c.Rank, dist)
 	}
 
-	if debugMode {
-		var filtered []LobbyUser
-		for _, c := range candidates {
-			if c.Name == debugTargetPlayer {
-				filtered = append(filtered, c)
-			}
-		}
-		if len(filtered) == 0 {
-			log.Printf("[fightcade] challengeLoop: DEBUG MODE — target %q not found in lobby, waiting for incoming challenges only", debugTargetPlayer)
-		} else {
-			log.Printf("[fightcade] challengeLoop: DEBUG MODE — narrowed candidates to target %q only", debugTargetPlayer)
-		}
-		candidates = filtered
-	}
+	pending := map[string]int{} // opponent name -> challengeid
+	next := 0
 
-	challengeID := 1
-	tried := map[string]bool{}
-
-	acceptCh := make(chan bool, 1)
-	m.client.on("accept", func(msg map[string]any) {
-		userObj, _ := msg["user"].(map[string]any)
-		accepter, _ := userObj["name"].(string)
-		log.Printf("[fightcade] challengeLoop: challenge ACCEPTED by %q", accepter)
-		closeOnce.Do(func() { close(challenged) })
-		select {
-		case acceptCh <- true:
-		default:
-		}
-	})
-	m.client.on("reject", func(msg map[string]any) {
-		userObj, _ := msg["user"].(map[string]any)
-		rejecter, _ := userObj["name"].(string)
-		log.Printf("[fightcade] challengeLoop: challenge REJECTED by %q", rejecter)
-		select {
-		case acceptCh <- false:
-		default:
-		}
-	})
+	m.challengeNext(ctx, candidates, &next, pending)
 
 	for {
-		var target *LobbyUser
-		for i := range candidates {
-			if !tried[candidates[i].Name] {
-				target = &candidates[i]
-				break
-			}
-		}
-		if target == nil {
-			log.Printf("[fightcade] challengeLoop: no more candidates to challenge")
+		if next >= len(candidates) && len(pending) == 0 {
+			log.Printf("[fightcade] challengeLoop: no candidates left and nothing pending, only incoming challenges can match now")
 			return
 		}
-
-		tried[target.Name] = true
-		log.Printf("[fightcade] challengeLoop: challenging %q (rank=%s(%d) challengeID=%d)",
-			target.Name, RankName(target.Rank), target.Rank, challengeID)
-		resp, err := m.client.challengeUser(ctx, target.Name, m.config.channelName, challengeID, m.config.ranked)
-		challengeID++
-		if err != nil {
-			log.Printf("[fightcade] challengeLoop: challengeUser error: %v", err)
-			continue
-		}
-		if !isSuccess(resp) {
-			log.Printf("[fightcade] challengeLoop: challengeUser failed: %v", resp)
-			continue
-		}
-		log.Printf("[fightcade] challengeLoop: challenge sent to %q, waiting for response (timeout=%s)", target.Name, retryDelay)
 		select {
-		case accepted := <-acceptCh:
-			if accepted {
-				log.Printf("[fightcade] challengeLoop: match confirmed with %q", target.Name)
-				return
-			}
-			log.Printf("[fightcade] challengeLoop: %q rejected, moving to next candidate", target.Name)
-		case <-time.After(retryDelay):
-			log.Printf("[fightcade] challengeLoop: timeout waiting for %q, moving to next candidate", target.Name)
 		case <-ctx.Done():
-			log.Printf("[fightcade] challengeLoop: context cancelled")
+			m.cancelPending(pending)
 			return
+		case name := <-rejectCh:
+			delete(pending, name)
+			m.challengeNext(ctx, candidates, &next, pending)
+		case <-time.After(retryDelay):
+			m.challengeNext(ctx, candidates, &next, pending)
+		}
+	}
+}
+
+// cancelPending cancels every pending challenge except the one we matched with.
+// It runs after ctx is cancelled, so it uses a fresh context for the requests.
+func (m *matchmaker) cancelPending(pending map[string]int) {
+	ctx, cancel := context.WithTimeout(context.Background(), reqTimeout)
+	defer cancel()
+	for name, cid := range pending {
+		if name == m.matched {
+			continue
+		}
+		log.Printf("[fightcade] challengeLoop: cancelling pending challenge to %q (challengeID=%d)", name, cid)
+		if _, err := m.client.cancelChallenge(ctx, name, m.config.channelName, cid); err != nil {
+			log.Printf("[fightcade] challengeLoop: cancelChallenge error: %v", err)
 		}
 	}
 }
 
 func (m *matchmaker) acceptIncoming(ctx context.Context, msg map[string]any) {
-	userObj, _ := msg["user"].(map[string]any)
-	opponent, _ := userObj["name"].(string)
+	opponent := userName(msg)
 	channel, _ := msg["channelname"].(string)
 	cidFloat, _ := msg["challengeid"].(float64)
 	cid := int(cidFloat)
 	ranked, _ := msg["ranked"].(bool)
-
-	if debugMode && opponent != debugTargetPlayer {
-		log.Printf("[fightcade] acceptIncoming: DEBUG MODE — ignoring challenge from %q (only accepting from %q)", opponent, debugTargetPlayer)
-		return
-	}
 
 	log.Printf("[fightcade] acceptIncoming: accepting challenge from %q (channel=%s challengeID=%d ranked=%v)", opponent, channel, cid, ranked)
 	go func() {
@@ -187,12 +191,19 @@ func (m *matchmaker) acceptIncoming(ctx context.Context, msg map[string]any) {
 	}()
 }
 
+func userName(msg map[string]any) string {
+	user, _ := msg["user"].(map[string]any)
+	name, _ := user["name"].(string)
+	return name
+}
+
 func parseStartEvent(msg map[string]any, fallbackToken string) *MatchEvent {
-	userObj, _ := msg["user"].(map[string]any)
-	opponent, _ := userObj["name"].(string)
+	opponent := userName(msg)
 	quarkid, _ := msg["quarkid"].(string)
-	playerid := int(msg["playerid"].(float64))
-	port := int(msg["port"].(float64))
+	playeridF, _ := msg["playerid"].(float64)
+	portF, _ := msg["port"].(float64)
+	playerid := int(playeridF)
+	port := int(portF)
 	delay := 0
 	if d, ok := msg["delay"].(float64); ok {
 		delay = int(d)
@@ -213,7 +224,8 @@ func parseStartEvent(msg map[string]any, fallbackToken string) *MatchEvent {
 	}
 }
 
-func launchGame(emulator, gameID string, event *MatchEvent) {
+// launchGame is a var so tests can stub the side-effecting URL open.
+var launchGame = func(emulator, gameID string, event *MatchEvent) {
 	url := buildMatchURL(emulator, gameID, event.QuarkID, event.PlayerID, event.Port, event.Delay, event.Ranked, event.Token)
 	log.Printf("[fightcade] launchGame: opening url=%s", url)
 	if err := openURL(url); err != nil {

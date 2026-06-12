@@ -23,10 +23,17 @@ type eventHandler func(msg map[string]any)
 
 type wsClient struct {
 	conn       *websocket.Conn
+	writeMu    sync.Mutex // gorilla/websocket allows only one concurrent writer
 	requestIdx atomic.Int64
 	pending    sync.Map // int64 -> chan map[string]any
 	handlers   sync.Map // string -> eventHandler
 	done       chan struct{}
+}
+
+func (c *wsClient) writeMessage(data []byte) error {
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+	return c.conn.WriteMessage(websocket.TextMessage, data)
 }
 
 func connect(ctx context.Context) (*wsClient, error) {
@@ -67,7 +74,7 @@ func (c *wsClient) sendCmd(ctx context.Context, payload map[string]any) (map[str
 	if err != nil {
 		return nil, err
 	}
-	if err := c.conn.WriteMessage(websocket.TextMessage, data); err != nil {
+	if err := c.writeMessage(data); err != nil {
 		return nil, fmt.Errorf("write: %w", err)
 	}
 
@@ -90,7 +97,7 @@ func (c *wsClient) sendFire(payload map[string]any) error {
 	if err != nil {
 		return err
 	}
-	return c.conn.WriteMessage(websocket.TextMessage, data)
+	return c.writeMessage(data)
 }
 
 func copyPayload(src map[string]any) map[string]any {
@@ -187,6 +194,10 @@ func (c *wsClient) searchChannels(ctx context.Context, query string, page int) (
 }
 
 func (c *wsClient) challengeUser(ctx context.Context, username, channelname string, challengeid int, ranked bool) (map[string]any, error) {
+	if debugMode {
+		log.Printf("[fightcade] wsClient: DEBUG MODE — skipping challenge to %q (channelname=%s challengeid=%d ranked=%v)", username, channelname, challengeid, ranked)
+		return map[string]any{"result": "ok"}, nil
+	}
 	return c.sendCmd(ctx, map[string]any{
 		"req":         "challenge",
 		"username":    username,
@@ -197,11 +208,28 @@ func (c *wsClient) challengeUser(ctx context.Context, username, channelname stri
 }
 
 func (c *wsClient) acceptChallenge(ctx context.Context, username, channelname string, challengeid int, ranked bool) (map[string]any, error) {
+	if debugMode {
+		log.Printf("[fightcade] wsClient: DEBUG MODE — skipping accept for %q (channelname=%s challengeid=%d ranked=%v)", username, channelname, challengeid, ranked)
+		return map[string]any{"result": "ok"}, nil
+	}
 	return c.sendCmd(ctx, map[string]any{
 		"req":         "accept",
 		"username":    username,
 		"channelname": channelname,
 		"challengeid": challengeid,
 		"ranked":      ranked,
+	})
+}
+
+func (c *wsClient) cancelChallenge(ctx context.Context, username, channelname string, challengeid int) (map[string]any, error) {
+	if debugMode {
+		log.Printf("[fightcade] wsClient: DEBUG MODE — skipping cancel for %q (channelname=%s challengeid=%d)", username, channelname, challengeid)
+		return map[string]any{"result": "ok"}, nil
+	}
+	return c.sendCmd(ctx, map[string]any{
+		"req":         "cancel",
+		"username":    username,
+		"channelname": channelname,
+		"challengeid": challengeid,
 	})
 }

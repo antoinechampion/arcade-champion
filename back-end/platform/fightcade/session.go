@@ -7,7 +7,9 @@ import (
 	"time"
 )
 
-const retryDelay = 10 * time.Second
+// retryDelay paces how long we wait before challenging the next candidate while
+// earlier challenges remain outstanding. A var so tests can shrink it.
+var retryDelay = 10 * time.Second
 
 type Credentials struct {
 	Username string
