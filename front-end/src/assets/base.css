@@ -117,7 +117,8 @@ body {
     radial-gradient(ellipse 90% 70% at 50% 35%, #14101f 0%, var(--color-bg) 70%);
   font-family: Outfit, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Ambient plasma blobs — full-screen echo of the button gradients */
