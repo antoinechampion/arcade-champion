@@ -182,7 +182,7 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
 
 <template>
   <section class="all-games-section py-6 px-12">
-    <div ref="searchBarRef" class="flex items-center justify-between px-12 mb-6">
+    <div ref="searchBarRef" class="flex items-center justify-between mb-4">
       <h2 class="section-heading flex-1 mr-8">All Games</h2>
       <div class="search-bar">
       <ArcadeTextInput
@@ -196,7 +196,7 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
 
     <div
       ref="containerRef"
-      class="pl-12"
+      class="surface games-panel"
     >
       <div v-for="(section, sIdx) in sections" :key="section.letter" class="letter-section mb-6">
         <span class="letter-watermark" aria-hidden="true">{{ section.letter }}</span>
@@ -232,6 +232,10 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
   align-items: center;
 }
 
+
+.games-panel {
+  padding: 2rem;
+}
 
 .letter-section {
   position: relative;

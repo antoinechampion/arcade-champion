@@ -59,11 +59,11 @@ const { active } = useComponentNavigation('featured', {
   image-rendering: pixelated;
   object-position: right center;
   mask-image:
-    linear-gradient(to right, transparent 0%, black 55%),
+    linear-gradient(to right, transparent 0%, black 45%, black 88%, transparent 100%),
     linear-gradient(to top, transparent 0%, black 45%);
   mask-composite: intersect;
   -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, black 55%),
+    linear-gradient(to right, transparent 0%, black 45%, black 88%, transparent 100%),
     linear-gradient(to top, transparent 0%, black 45%);
   -webkit-mask-composite: source-in;
 }

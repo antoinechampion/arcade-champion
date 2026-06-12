@@ -1,7 +1,7 @@
 @font-face {
-  font-family: Rubik;
-  src: url('/Rubik-VariableFont_wght.ttf') format('truetype');
-  font-weight: 400;
+  font-family: Outfit;
+  src: url('/Outfit-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
   font-display: swap;
 }
 
@@ -99,6 +99,9 @@
 
   --color-glow: rgba(124, 92, 224, 0.4);
   --color-glow-strong: rgba(124, 92, 224, 0.7);
+
+  --surface-bg: rgba(255, 255, 255, 0.025);
+  --surface-border: rgba(255, 255, 255, 0.07);
 }
 
 *,
@@ -112,7 +115,7 @@ body {
   color: var(--color-text);
   background:
     radial-gradient(ellipse 90% 70% at 50% 35%, #14101f 0%, var(--color-bg) 70%);
-  font-family: Rubik, system-ui, sans-serif;
+  font-family: Outfit, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
 }
@@ -161,6 +164,13 @@ body::after {
 
 * {
   scrollbar-width: none;
+}
+
+/* Frosted panel surface — gives content a layer to rest on */
+.surface {
+  background: var(--surface-bg);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(12px);
 }
 
 /* Section header with trailing plasma accent rule */

@@ -55,8 +55,8 @@ function scrollToSelected() {
 
 <template>
   <section ref="sectionRef" class="recently-played-section py-6 px-12">
-    <h2 class="section-heading mb-4 px-12">Recently Played</h2>
-    <div ref="scrollRef" class="recently-played-scroll">
+    <h2 class="section-heading mb-4">Recently Played</h2>
+    <div ref="scrollRef" class="recently-played-scroll surface">
       <div
         v-for="(game, index) in games"
         :key="game.id"
@@ -79,7 +79,7 @@ function scrollToSelected() {
 .recently-played-scroll {
   display: flex;
   gap: 1.5rem;
-  padding: 1.5rem 3rem;
+  padding: 2rem;
   overflow-x: auto;
   scroll-behavior: smooth;
   scrollbar-width: none;
