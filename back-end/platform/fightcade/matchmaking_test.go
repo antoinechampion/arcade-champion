@@ -58,8 +58,8 @@ func TestMatchmaker_FirstAcceptWinsAndCancelsRest(t *testing.T) {
 		username:    "me",
 		myRank:      3,
 		users: []LobbyUser{
-			{Name: "winner", Rank: 3},
-			{Name: "loser", Rank: 4},
+			{Name: "winner", Rank: 3, Vping: 3},
+			{Name: "loser", Rank: 4, Vping: 3},
 		},
 	}}
 
@@ -147,16 +147,16 @@ func TestParseStartEvent_FallbackToken(t *testing.T) {
 	}
 }
 
-func TestSortByRankDistance(t *testing.T) {
+func TestSortCandidates_RankDistanceWithinSameConnection(t *testing.T) {
 	users := []LobbyUser{
 		{Name: "me", Rank: 3},
-		{Name: "far", Rank: 6},
-		{Name: "close", Rank: 4},
-		{Name: "closest", Rank: 3},
-		{Name: "busy", Rank: 3, Playing: true},
-		{Name: "afk", Rank: 3, Away: true},
+		{Name: "far", Rank: 6, Vping: 3},
+		{Name: "close", Rank: 4, Vping: 3},
+		{Name: "closest", Rank: 3, Vping: 3},
+		{Name: "busy", Rank: 3, Vping: 3, Playing: true},
+		{Name: "afk", Rank: 3, Vping: 3, Away: true},
 	}
-	sorted := sortByRankDistance(users, 3, "me")
+	sorted := sortCandidates(users, 3, "me")
 
 	if len(sorted) != 3 {
 		t.Fatalf("expected 3 candidates, got %d", len(sorted))
@@ -169,6 +169,33 @@ func TestSortByRankDistance(t *testing.T) {
 	}
 	if sorted[2].Name != "far" {
 		t.Errorf("expected far third, got %s", sorted[2].Name)
+	}
+}
+
+func TestSortCandidates_DropsPoorAndPrefersGoodConnection(t *testing.T) {
+	users := []LobbyUser{
+		{Name: "me", Rank: 3},
+		{Name: "dropped-1bar", Rank: 3, Vping: 1}, // perfect rank but 1 bar — dropped
+		{Name: "dropped-0bar", Rank: 4, Vping: 0}, // 0 bars — dropped
+		{Name: "ok-exact", Rank: 3, Vping: 2},     // 2 bars, exact rank — lower bucket
+		{Name: "good-far", Rank: 6, Vping: 4},     // worse rank but top bucket
+		{Name: "good-close", Rank: 4, Vping: 3},   // top bucket, closer rank
+	}
+	sorted := sortCandidates(users, 3, "me")
+
+	if len(sorted) != 3 {
+		t.Fatalf("expected 3 candidates, got %d", len(sorted))
+	}
+	// Good-connection bucket first, closest rank within it.
+	if sorted[0].Name != "good-close" {
+		t.Errorf("expected good-close first, got %s", sorted[0].Name)
+	}
+	if sorted[1].Name != "good-far" {
+		t.Errorf("expected good-far second, got %s", sorted[1].Name)
+	}
+	// 2-bar player ranks last despite an exact rank match.
+	if sorted[2].Name != "ok-exact" {
+		t.Errorf("expected ok-exact third, got %s", sorted[2].Name)
 	}
 }
 

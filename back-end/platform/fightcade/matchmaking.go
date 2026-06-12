@@ -128,13 +128,7 @@ func (m *matchmaker) challengeNext(ctx context.Context, candidates []LobbyUser, 
 // be outstanding at once; the first opponent to accept wins. When ctx is cancelled
 // — a match was won — every still-pending challenge except the winner's is cancelled.
 func (m *matchmaker) challengeLoop(ctx context.Context, rejectCh <-chan string) {
-	candidates := sortByRankDistance(m.config.users, m.config.myRank, m.config.username)
-	log.Printf("[fightcade] challengeLoop: %d candidates sorted by rank distance (my rank=%s(%d)):",
-		len(candidates), RankName(m.config.myRank), m.config.myRank)
-	for i, c := range candidates {
-		dist := math.Abs(float64(c.Rank - m.config.myRank))
-		log.Printf("[fightcade] challengeLoop:   #%d %s rank=%s(%d) distance=%.0f", i+1, c.Name, RankName(c.Rank), c.Rank, dist)
-	}
+	candidates := sortCandidates(m.config.users, m.config.myRank, m.config.username)
 
 	pending := map[string]int{} // opponent name -> challengeid
 	next := 0
@@ -233,18 +227,42 @@ var launchGame = func(emulator, gameID string, event *MatchEvent) {
 	}
 }
 
-func sortByRankDistance(users []LobbyUser, myRank int, myName string) []LobbyUser {
+// vping is the lobby connection-bar level (higher = better)
+const (
+	minConnection  = 1 // drop anyone with fewer bars
+	goodConnection = 3 // challenged before any weaker connection
+)
+
+// sortCandidates drops poorly-connected players, then orders the rest so a good
+// connection always beats a closer rank
+func sortCandidates(users []LobbyUser, myRank int, myName string) []LobbyUser {
 	var candidates []LobbyUser
 	for _, u := range users {
-		if u.Name == myName || u.Playing || u.Away {
+		if u.Name == myName || u.Playing || u.Away || u.Vping <= minConnection {
 			continue
 		}
 		candidates = append(candidates, u)
 	}
 	slices.SortFunc(candidates, func(a, b LobbyUser) int {
+		ga := a.Vping >= goodConnection
+		gb := b.Vping >= goodConnection
+		if ga != gb {
+			if ga {
+				return -1
+			}
+			return 1
+		}
 		da := math.Abs(float64(a.Rank - myRank))
 		db := math.Abs(float64(b.Rank - myRank))
 		return cmp.Compare(da, db)
 	})
+
+	log.Printf("[fightcade] challengeLoop: %d candidates found (my rank=%s(%d)):",
+		len(candidates), RankName(myRank), myRank)
+	for i, c := range candidates {
+		dist := math.Abs(float64(c.Rank - myRank))
+		log.Printf("- #%d %s rank=%s(%d) vping=%d distance=%.0f", i+1, c.Name, RankName(c.Rank), c.Rank, c.Vping, dist)
+	}
+
 	return candidates
 }

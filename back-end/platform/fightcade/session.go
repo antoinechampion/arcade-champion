@@ -9,7 +9,7 @@ import (
 
 // retryDelay paces how long we wait before challenging the next candidate while
 // earlier challenges remain outstanding. A var so tests can shrink it.
-var retryDelay = 10 * time.Second
+var retryDelay = 15 * time.Second
 
 type Credentials struct {
 	Username string
@@ -28,6 +28,7 @@ type Channel struct {
 type LobbyUser struct {
 	Name    string `json:"name"`
 	Rank    int    `json:"rank"`
+	Vping   int    `json:"vping"` // connection-bar level shown in the lobby UI (higher = better)
 	Playing bool   `json:"playing"`
 	Away    bool   `json:"away"`
 }
@@ -220,13 +221,10 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 	lobbyUsers, myRank := parseLobbyUsers(usersRaw, username)
 	log.Printf("[fightcade] Lobby: %d users in lobby, my rank=%s(%d)", len(lobbyUsers), RankName(myRank), myRank)
 	for _, u := range lobbyUsers {
-		status := "available"
-		if u.Playing {
-			status = "playing"
-		} else if u.Away {
-			status = "away"
+		if u.Name == username || u.Playing || u.Away {
+			continue
 		}
-		log.Printf("[fightcade] Lobby:   user=%s rank=%s(%d) status=%s", u.Name, RankName(u.Rank), u.Rank, status)
+		log.Printf("[fightcade] Lobby:   user=%s rank=%s(%d) connection=%d bars", u.Name, RankName(u.Rank), u.Rank, u.Vping)
 	}
 
 	mm := &matchmaker{client: client, config: lobbyConfig{
@@ -286,6 +284,10 @@ func parseLobbyUsers(users []any, localUser string) ([]LobbyUser, int) {
 		if r, ok := u["rank"].(float64); ok {
 			rank = int(r)
 		}
+		vping := 0
+		if v, ok := u["vping"].(float64); ok {
+			vping = int(v)
+		}
 		playing := false
 		if p, ok := u["playing"].(bool); ok {
 			playing = p
@@ -299,7 +301,7 @@ func parseLobbyUsers(users []any, localUser string) ([]LobbyUser, int) {
 		if name == localUser {
 			myRank = rank
 		}
-		parsed = append(parsed, LobbyUser{Name: name, Rank: rank, Playing: playing, Away: away})
+		parsed = append(parsed, LobbyUser{Name: name, Rank: rank, Vping: vping, Playing: playing, Away: away})
 	}
 	return parsed, myRank
 }
