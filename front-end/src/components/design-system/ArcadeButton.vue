@@ -16,14 +16,14 @@ defineProps<{
 
 <style scoped>
 .arcade-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(4px);
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.06) 100%);
-  backdrop-filter: blur(24px);
   color: var(--color-text);
   font-size: 1rem;
   font-weight: 500;
@@ -88,7 +88,7 @@ defineProps<{
 .arcade-btn:focus-visible::before,
 .arcade-btn:focus::before,
 .arcade-btn.focused::before {
-  opacity: 0.8;
+  opacity: 0.7;
   --blob1-x: 55%;
   --blob1-y: 60%;
   --blob2-x: 40%;
@@ -104,6 +104,7 @@ defineProps<{
 .arcade-btn:focus-visible,
 .arcade-btn:focus,
 .arcade-btn.focused {
+  background-color: rgba(0,0,0,0.5);
   box-shadow:
     0 0 30px var(--color-glow),
     0 0 60px rgba(124, 92, 224, 0.15),
