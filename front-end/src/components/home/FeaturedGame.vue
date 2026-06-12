@@ -35,14 +35,14 @@ const { active } = useComponentNavigation('featured', {
 <template>
   <section ref="sectionRef" class="relative h-[60vh] overflow-hidden">
     <div class="absolute inset-0">
-      <img :src="bannerUrl" :alt="title" class="banner-img h-full object-cover w-[80%] ml-[30%]" />
+      <img :src="bannerUrl" :alt="title" class="banner-img h-full w-full object-cover" />
     </div>
 
     <div class="relative flex flex-col items-start justify-end h-full p-24 gap-3">
       <span class="text-sm font-medium uppercase tracking-widest opacity-70 ml-0.5">{{ platform }}</span>
-      <h1 class="text-5xl font-bold leading-tight">{{ title }}</h1>
+      <h1 class="hero-title text-5xl font-bold leading-tight">{{ title }}</h1>
       <span class="text-sm opacity-60 ml-0.5">{{ releaseYear }} - {{ developer }}</span>
-      <ArcadeButton ref="buttonRef" class="mt-9" label="Play" :focused="active" @click="emit('play')">
+      <ArcadeButton ref="buttonRef" class="play-btn mt-9" label="Play" :focused="active" @click="emit('play')">
         <template #icon>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-5">
             <path d="M8 5v14l11-7z" />
@@ -57,14 +57,23 @@ const { active } = useComponentNavigation('featured', {
 .banner-img {
   animation: pan 30s ease-in-out infinite alternate;
   image-rendering: pixelated;
+  object-position: right center;
   mask-image:
-    linear-gradient(to right, transparent 0%, black 40%),
-    linear-gradient(to top, transparent 0%, black 40%);
+    linear-gradient(to right, transparent 0%, black 55%),
+    linear-gradient(to top, transparent 0%, black 45%);
   mask-composite: intersect;
   -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, black 40%),
-    linear-gradient(to top, transparent 0%, black 40%);
+    linear-gradient(to right, transparent 0%, black 55%),
+    linear-gradient(to top, transparent 0%, black 45%);
   -webkit-mask-composite: source-in;
+}
+
+.hero-title {
+  text-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+}
+
+:deep(.play-btn.focused) {
+  animation: play-pulse 2.4s ease-in-out infinite;
 }
 
 @keyframes pan {
@@ -72,7 +81,22 @@ const { active } = useComponentNavigation('featured', {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-16.67%);
+    transform: translateX(-8%);
+  }
+}
+
+@keyframes play-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 30px var(--color-glow),
+      0 0 60px rgba(124, 92, 224, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 45px var(--color-glow-strong),
+      0 0 90px rgba(124, 92, 224, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 }
 </style>

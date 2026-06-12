@@ -35,4 +35,11 @@ describe('GameCard', () => {
     const wrapper = mount(GameCard, { props: baseProps })
     expect(wrapper.find('.game-card').classes()).not.toContain('selected')
   })
+
+  it('shows a titled fallback when the cover image fails to load', async () => {
+    const wrapper = mount(GameCard, { props: baseProps })
+    await wrapper.find('img').trigger('error')
+    expect(wrapper.find('img').exists()).toBe(false)
+    expect(wrapper.find('.card-fallback').text()).toContain('Street Fighter III')
+  })
 })

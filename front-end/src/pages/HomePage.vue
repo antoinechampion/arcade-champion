@@ -6,6 +6,7 @@ import RecentlyPlayed from '@/components/home/RecentlyPlayed.vue'
 import AllGames from '@/components/home/AllGames.vue'
 import LaunchOptions from '@/components/home/LaunchOptions.vue'
 import LaunchingOverlay from '@/components/design-system/LaunchingOverlay.vue'
+import HudFrame from '@/components/design-system/HudFrame.vue'
 import { fetchRecentlyPlayed, launchGame, imageUrl } from '@/api/client'
 import { usePageNavigation } from '@/composables/navigation'
 import type { Game } from '@/api/types'
@@ -56,6 +57,8 @@ function onLaunchCancelled() {
 </script>
 
 <template>
+  <HudFrame />
+
   <FeaturedGame
     v-if="featuredGame"
     :title="featuredGame.title"

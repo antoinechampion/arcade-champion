@@ -55,7 +55,7 @@ function scrollToSelected() {
 
 <template>
   <section ref="sectionRef" class="recently-played-section py-6 px-12">
-    <h2 class="text-lg font-bold mb-4 opacity-80 px-12">Recently Played</h2>
+    <h2 class="section-heading mb-4 px-12">Recently Played</h2>
     <div ref="scrollRef" class="recently-played-scroll">
       <div
         v-for="(game, index) in games"

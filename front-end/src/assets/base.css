@@ -53,6 +53,41 @@
   }
 }
 
+@keyframes ambient-drift {
+  0% {
+    --blob1-x: 25%;
+    --blob1-y: 75%;
+    --blob2-x: 75%;
+    --blob2-y: 25%;
+    --blob3-x: 50%;
+    --blob3-y: 55%;
+  }
+  50% {
+    --blob1-x: 40%;
+    --blob1-y: 55%;
+    --blob2-x: 60%;
+    --blob2-y: 45%;
+    --blob3-x: 35%;
+    --blob3-y: 70%;
+  }
+  100% {
+    --blob1-x: 25%;
+    --blob1-y: 75%;
+    --blob2-x: 75%;
+    --blob2-y: 25%;
+    --blob3-x: 50%;
+    --blob3-y: 55%;
+  }
+}
+
+@keyframes grid-scroll {
+  to {
+    background-position:
+      0 -48px,
+      0 -48px;
+  }
+}
+
 :root {
   --color-bg: #0a0a0f;
   --color-text: #e8e8f0;
@@ -75,10 +110,49 @@
 body {
   min-height: 100vh;
   color: var(--color-text);
-  background: var(--color-bg);
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 35%, #14101f 0%, var(--color-bg) 70%);
   font-family: Rubik, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+}
+
+/* Ambient plasma blobs — full-screen echo of the button gradients */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  --blob1-x: 25%;
+  --blob1-y: 75%;
+  --blob2-x: 75%;
+  --blob2-y: 25%;
+  --blob3-x: 50%;
+  --blob3-y: 55%;
+  background:
+    radial-gradient(ellipse 50% 45% at var(--blob1-x) var(--blob1-y), var(--color-primary-dark) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 40% at var(--blob2-x) var(--blob2-y), var(--color-accent) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at var(--blob3-x) var(--blob3-y), var(--color-primary) 0%, transparent 70%);
+  opacity: 0.18;
+  filter: blur(40px);
+  animation: ambient-drift 28s ease-in-out infinite;
+}
+
+/* Drifting grid overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(167, 139, 250, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167, 139, 250, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 30%, transparent 90%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 30%, transparent 90%);
+  animation: grid-scroll 6s linear infinite;
 }
 
 ::-webkit-scrollbar {
@@ -87,6 +161,32 @@ body {
 
 * {
   scrollbar-width: none;
+}
+
+/* Section header with trailing plasma accent rule */
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--color-primary-light);
+}
+
+.section-heading::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--color-primary-light) 0%,
+    var(--color-accent) 25%,
+    transparent 70%
+  );
+  opacity: 0.6;
 }
 
 .plasma-border {

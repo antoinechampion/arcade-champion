@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 defineProps<{
   title: string
   platform: string
@@ -7,11 +9,16 @@ defineProps<{
   imageUrl: string
   selected?: boolean
 }>()
+
+const failed = ref(false)
 </script>
 
 <template>
   <div class="game-card plasma-border" :class="{ selected, 'plasma-border-active': selected }">
-    <img :src="imageUrl" :alt="title" class="card-img w-full h-full object-cover" />
+    <div v-if="failed" class="card-fallback">
+      <span class="fallback-title">{{ title }}</span>
+    </div>
+    <img v-else :src="imageUrl" :alt="title" class="card-img w-full h-full object-cover" @error="failed = true" />
     <div class="info">
       <span class="text-xs font-medium uppercase tracking-widest opacity-70">{{ platform }}</span>
       <span class="text-sm font-bold leading-tight">{{ title }}</span>
@@ -28,7 +35,29 @@ defineProps<{
   border-radius: 0.75rem;
   overflow: hidden;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   transition: box-shadow, transform 0.3s ease;
+}
+
+.card-fallback {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 100%;
+  padding: 0.75rem;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 20%, var(--color-primary-dark) 0%, transparent 70%),
+    radial-gradient(ellipse 70% 55% at 75% 90%, var(--color-accent) 0%, transparent 70%),
+    var(--color-bg);
+}
+
+.fallback-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .card-img {

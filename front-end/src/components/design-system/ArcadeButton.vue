@@ -6,7 +6,7 @@ defineProps<{
 </script>
 
 <template>
-  <button class="arcade-btn plasma-border" :class="[label ? 'has-label' : 'icon-only', { focused, 'plasma-border-active': focused }]">
+  <button class="arcade-btn" :class="[label ? 'has-label' : 'icon-only', { focused, 'plasma-border-active': focused }]">
     <span v-if="$slots.icon" class="icon">
       <slot name="icon" />
     </span>

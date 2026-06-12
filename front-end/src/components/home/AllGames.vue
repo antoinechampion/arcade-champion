@@ -183,7 +183,7 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
 <template>
   <section class="all-games-section py-6 px-12">
     <div ref="searchBarRef" class="flex items-center justify-between px-12 mb-6">
-      <h2 class="text-lg font-bold opacity-80">All Games</h2>
+      <h2 class="section-heading flex-1 mr-8">All Games</h2>
       <div class="search-bar">
       <ArcadeTextInput
         v-model="searchQuery"
@@ -198,8 +198,8 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
       ref="containerRef"
       class="pl-12"
     >
-      <div v-for="(section, sIdx) in sections" :key="section.letter" class="mb-6">
-        <h3 class="text-sm font-bold opacity-50 mb-3">{{ section.letter }}</h3>
+      <div v-for="(section, sIdx) in sections" :key="section.letter" class="letter-section mb-6">
+        <span class="letter-watermark" aria-hidden="true">{{ section.letter }}</span>
         <div class="games-grid" :data-section="section.letter">
           <GameCard
             v-for="(game, i) in section.games"
@@ -233,7 +233,27 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
 }
 
 
+.letter-section {
+  position: relative;
+}
+
+.letter-watermark {
+  position: absolute;
+  top: -1.5rem;
+  left: -0.5rem;
+  font-size: 7rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-primary-light);
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
 .games-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(v-bind(COLUMNS), 1fr);
   gap: 1.5rem;
