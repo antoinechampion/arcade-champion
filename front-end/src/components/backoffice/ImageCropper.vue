@@ -9,8 +9,8 @@ const props = withDefaults(defineProps<{
 }>(), { outputScale: 1 })
 
 // In dev, external images must be proxied through localhost so the canvas can
-// read their pixels (cross-origin taints the canvas). In production (Electron/Tauri),
-// web security is relaxed so no proxy is needed. Local paths (/images/...) are
+// read their pixels (cross-origin taints the canvas). In production (Tauri),
+// web security is disabled so no proxy is needed. Local paths (/images/...) are
 // already same-origin and don't need proxying.
 const proxiedUrl = computed(() => {
   const url = props.url
