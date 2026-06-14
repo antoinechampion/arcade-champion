@@ -71,6 +71,8 @@ export function usePageNavigation(zoneOrder: string[]) {
     if (navigationLocked.value) return
     const command = KEY_MAP[e.key]
     if (!command) return
+    const tag = (e.target as HTMLElement).tagName
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return
     e.preventDefault()
     emitCommand(command)
   }

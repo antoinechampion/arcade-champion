@@ -22,6 +22,7 @@ startGamepadPolling()
 document.body.focus()
 document.addEventListener('keydown', (e) => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-    e.preventDefault()
+    const tag = (e.target as HTMLElement).tagName
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA') e.preventDefault()
   }
 })
