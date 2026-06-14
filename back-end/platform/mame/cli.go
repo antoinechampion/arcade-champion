@@ -42,7 +42,7 @@ func parseCommand(cmd string) (string, []string) {
 }
 
 func parseListFull(output []byte, query string) []Game {
-	lowerQuery := strings.ToLower(query)
+	normalizedQuery := strings.ReplaceAll(strings.ToLower(query), " ", "")
 	var games []Game
 
 	scanner := bufio.NewScanner(bytes.NewReader(output))
@@ -52,7 +52,8 @@ func parseListFull(output []byte, query string) []Game {
 		if !ok {
 			continue
 		}
-		if !strings.Contains(strings.ToLower(name), lowerQuery) {
+		normalizedName := strings.ReplaceAll(strings.ToLower(name), " ", "")
+		if !strings.Contains(normalizedName, normalizedQuery) {
 			continue
 		}
 		games = append(games, Game{Name: name, RomID: romID})

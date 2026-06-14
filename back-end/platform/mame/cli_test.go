@@ -10,6 +10,9 @@ sf2               "Street Fighter II: The World Warrior (World 910522)"
 sf2ce             "Street Fighter II': Champion Edition (World 920513)"
 sfiii3            "Street Fighter III 3rd Strike: Fight for the Future (Europe 990608)"
 garou             "Garou: Mark of the Wolves (NGM-2530)"
+outrun            "Out Run (set 1)"
+outrunb           "Out Run (bootleg)"
+outrunners        "OutRunners"
 `
 
 func TestParseListFull(t *testing.T) {
@@ -29,6 +32,14 @@ func TestParseListFullCaseInsensitive(t *testing.T) {
 	}
 	if games[0].RomID != "garou" {
 		t.Errorf("expected garou, got %s", games[0].RomID)
+	}
+}
+
+func TestParseListFullSpaceNormalization(t *testing.T) {
+	// "outrun" should match "Out Run" (space in name) and "OutRunners"
+	games := parseListFull([]byte(sampleOutput), "outrun")
+	if len(games) != 3 {
+		t.Fatalf("expected 3 results, got %d: %v", len(games), games)
 	}
 }
 
