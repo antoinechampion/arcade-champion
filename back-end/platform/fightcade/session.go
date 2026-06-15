@@ -11,6 +11,10 @@ import (
 // earlier challenges remain outstanding. A var so tests can shrink it.
 var retryDelay = 15 * time.Second
 
+// acceptDelay is how long we wait before accepting an incoming challenge, giving
+// the challenge loop time to win via an outgoing accept instead. A var so tests can shrink it.
+var acceptDelay = 3 * time.Second
+
 type Credentials struct {
 	Username string
 	Password string

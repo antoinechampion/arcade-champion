@@ -176,8 +176,18 @@ func (m *matchmaker) acceptIncoming(ctx context.Context, msg map[string]any) {
 	cid := int(cidFloat)
 	ranked, _ := msg["ranked"].(bool)
 
-	log.Printf("[fightcade] acceptIncoming: accepting challenge from %q (channel=%s challengeID=%d ranked=%v)", opponent, channel, cid, ranked)
+	log.Printf("[fightcade] acceptIncoming: accepting challenge from %q (channel=%s challengeID=%d ranked=%v) in 3s", opponent, channel, cid, ranked)
 	go func() {
+		select {
+		case <-ctx.Done():
+			log.Printf("[fightcade] acceptIncoming: context cancelled before delay elapsed, not accepting %q", opponent)
+			return
+		case <-time.After(acceptDelay):
+		}
+		if ctx.Err() != nil {
+			log.Printf("[fightcade] acceptIncoming: context cancelled after delay, not accepting %q", opponent)
+			return
+		}
 		_, err := m.client.acceptChallenge(ctx, opponent, channel, cid, ranked)
 		if err != nil {
 			log.Printf("[fightcade] acceptIncoming: acceptChallenge error: %v", err)

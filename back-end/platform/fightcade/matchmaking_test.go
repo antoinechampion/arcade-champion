@@ -92,6 +92,69 @@ func TestMatchmaker_FirstAcceptWinsAndCancelsRest(t *testing.T) {
 	}
 }
 
+// TestMatchmaker_IncomingChallengeDroppedIfAlreadyMatched verifies that when a
+// "start" event arrives during the accept delay, the delayed goroutine notices
+// the cancelled context and does NOT send an accept request.
+func TestMatchmaker_IncomingChallengeDroppedIfAlreadyMatched(t *testing.T) {
+	prevRetry, prevAccept, prevLaunch := retryDelay, acceptDelay, launchGame
+	retryDelay = 5 * time.Millisecond
+	acceptDelay = 50 * time.Millisecond
+	launchGame = func(emulator, gameID string, event *MatchEvent) {}
+	t.Cleanup(func() { retryDelay, acceptDelay, launchGame = prevRetry, prevAccept, prevLaunch })
+
+	var mu sync.Mutex
+	accepts := 0
+
+	client := startTestServer(t, func(conn *websocket.Conn, msg map[string]any) {
+		req, _ := msg["req"].(string)
+		idx := msg["requestIdx"]
+		switch req {
+		case "challenge":
+			reply(conn, map[string]any{"req": req, "result": 200, "requestIdx": idx})
+			// Immediately push a start so matchCtx gets cancelled.
+			reply(conn, map[string]any{
+				"req": "start", "user": map[string]any{"name": "winner"},
+				"quarkid": "1-2", "playerid": float64(0), "port": float64(6000),
+				"ranked": false, "token": "tok",
+			})
+			// Then push an incoming challenge — accept must be suppressed.
+			reply(conn, map[string]any{
+				"req": "challenge", "user": map[string]any{"name": "late-challenger"},
+				"channelname": "chan", "challengeid": float64(99), "ranked": false,
+			})
+		case "accept":
+			mu.Lock()
+			accepts++
+			mu.Unlock()
+			reply(conn, map[string]any{"req": req, "result": 200, "requestIdx": idx})
+		default:
+			reply(conn, map[string]any{"req": req, "result": 200, "requestIdx": idx})
+		}
+	})
+
+	mm := &matchmaker{client: client, config: lobbyConfig{
+		channelName: "chan",
+		username:    "me",
+		myRank:      3,
+		users:       []LobbyUser{{Name: "winner", Rank: 3, Vping: 3}},
+	}}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if _, err := mm.run(ctx); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+
+	// Wait longer than acceptDelay to be sure the goroutine had time to (not) fire.
+	time.Sleep(acceptDelay * 3)
+
+	mu.Lock()
+	defer mu.Unlock()
+	if accepts != 0 {
+		t.Errorf("accept sent %d time(s), want 0 (match was already won)", accepts)
+	}
+}
+
 func TestParseStartEvent(t *testing.T) {
 	msg := map[string]any{
 		"user":     map[string]any{"name": "rival"},
