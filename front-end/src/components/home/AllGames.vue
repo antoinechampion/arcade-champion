@@ -33,8 +33,11 @@ const searchInputFocused = computed(() => active.value && focusArea.value === 's
 const searchButtonFocused = computed(() => active.value && focusArea.value === 'search' && searchFocusIdx.value === 1)
 
 const sections = computed<GameSection[]>(() => {
+  const sorted = [...games.value].sort((a, b) =>
+    a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
+  )
   const grouped: GameSection[] = []
-  for (const game of games.value) {
+  for (const game of sorted) {
     const letter = game.title[0].toUpperCase()
     const last = grouped[grouped.length - 1]
     if (last && last.letter === letter) {
@@ -199,7 +202,7 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
       class="surface games-panel"
     >
       <div v-for="(section, sIdx) in sections" :key="section.letter" class="letter-section mb-6">
-        <span class="letter-watermark" aria-hidden="true">{{ section.letter }}</span>
+        <h3 class="letter-heading">{{ section.letter }}</h3>
         <div class="games-grid" :data-section="section.letter">
           <GameCard
             v-for="(game, i) in section.games"
@@ -241,23 +244,17 @@ watch([focusArea, searchFocusIdx, currentSectionIdx, currentCardIdx], scrollToFo
   position: relative;
 }
 
-.letter-watermark {
-  position: absolute;
-  top: -1.5rem;
-  left: -0.5rem;
-  font-size: 7rem;
-  font-weight: 800;
-  line-height: 1;
+.letter-heading {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
   color: var(--color-primary-light);
-  opacity: 0.06;
-  pointer-events: none;
-  user-select: none;
-  z-index: 0;
+  opacity: 0.5;
+  margin-bottom: 0.75rem;
 }
 
 .games-grid {
   position: relative;
-  z-index: 1;
   display: grid;
   grid-template-columns: repeat(v-bind(COLUMNS), 1fr);
   gap: 1.5rem;
