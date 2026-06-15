@@ -8,14 +8,25 @@ const router = useRouter()
 const fightcadeUsername = ref('')
 const fightcadePassword = ref('')
 const fightcadeCookie = ref('')
+const fightcadeMatchDuration = ref('3')
 const mamePath = ref('')
 const steamPath = ref('')
+
+const matchDurationOptions = [
+  { value: '0', label: 'Unranked' },
+  { value: '2', label: 'FT2' },
+  { value: '3', label: 'FT3' },
+  { value: '5', label: 'FT5' },
+  { value: '10', label: 'FT10' },
+  { value: '20', label: 'FT20' },
+]
 
 onMounted(async () => {
   const s = await fetchSettings()
   fightcadeUsername.value = s.fightcadeUsername
   fightcadePassword.value = s.fightcadePassword
   fightcadeCookie.value = s.fightcadeCookie
+  fightcadeMatchDuration.value = s.fightcadeMatchDuration || '3'
   mamePath.value = s.mamePath
   steamPath.value = s.steamPath
 })
@@ -25,6 +36,7 @@ async function save() {
     fightcadeUsername: fightcadeUsername.value,
     fightcadePassword: fightcadePassword.value,
     fightcadeCookie: fightcadeCookie.value,
+    fightcadeMatchDuration: fightcadeMatchDuration.value,
     mamePath: mamePath.value,
     steamPath: steamPath.value,
   })
@@ -54,6 +66,13 @@ async function save() {
         <label>
           Cookie
           <input v-model="fightcadeCookie" type="text" placeholder="Session cookie">
+        </label>
+
+        <label>
+          Match Duration
+          <select v-model="fightcadeMatchDuration">
+            <option v-for="opt in matchDurationOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </label>
       </fieldset>
 
@@ -130,7 +149,8 @@ label {
   opacity: 0.8;
 }
 
-input {
+input,
+select {
   padding: 0.5rem 0.625rem;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -142,12 +162,17 @@ input {
   transition: border-color 0.2s ease;
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: var(--color-primary-light);
 }
 
 input::placeholder {
   opacity: 0.3;
+}
+
+select option {
+  background: var(--color-background, #1a1a1a);
 }
 
 .form-actions {

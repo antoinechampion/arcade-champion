@@ -8,11 +8,12 @@ import (
 )
 
 type settings struct {
-	FightcadeUsername string `json:"fightcadeUsername"`
-	FightcadePassword string `json:"fightcadePassword"`
-	FightcadeCookie   string `json:"fightcadeCookie"`
-	MamePath          string `json:"mamePath"`
-	SteamPath         string `json:"steamPath"`
+	FightcadeUsername      string `json:"fightcadeUsername"`
+	FightcadePassword      string `json:"fightcadePassword"`
+	FightcadeCookie        string `json:"fightcadeCookie"`
+	FightcadeMatchDuration string `json:"fightcadeMatchDuration"`
+	MamePath               string `json:"mamePath"`
+	SteamPath              string `json:"steamPath"`
 }
 
 func SettingsHandler(db *database.DB) http.HandlerFunc {
@@ -45,6 +46,15 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 		http.Error(w, "failed to load settings", http.StatusInternalServerError)
 		return
 	}
+	matchDuration, err := db.FightcadeMatchDuration()
+	if err != nil {
+		log.Printf("get settings fightcade.matchDuration: %v", err)
+		http.Error(w, "failed to load settings", http.StatusInternalServerError)
+		return
+	}
+	if matchDuration == "" {
+		matchDuration = "3"
+	}
 	mamePath, err := db.MamePath()
 	if err != nil {
 		log.Printf("get settings mame.path: %v", err)
@@ -60,11 +70,12 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(settings{
-		FightcadeUsername: username,
-		FightcadePassword: password,
-		FightcadeCookie:   cookie,
-		MamePath:          mamePath,
-		SteamPath:         steamPath,
+		FightcadeUsername:      username,
+		FightcadePassword:      password,
+		FightcadeCookie:        cookie,
+		FightcadeMatchDuration: matchDuration,
+		MamePath:               mamePath,
+		SteamPath:              steamPath,
 	})
 }
 
@@ -88,6 +99,11 @@ func putSettings(db *database.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	if err := db.SetFightcadeCookie(s.FightcadeCookie); err != nil {
 		log.Printf("put settings fightcade.cookie: %v", err)
+		http.Error(w, "failed to save settings", http.StatusInternalServerError)
+		return
+	}
+	if err := db.SetFightcadeMatchDuration(s.FightcadeMatchDuration); err != nil {
+		log.Printf("put settings fightcade.matchDuration: %v", err)
 		http.Error(w, "failed to save settings", http.StatusInternalServerError)
 		return
 	}

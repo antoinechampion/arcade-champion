@@ -5,6 +5,7 @@ import (
 	"back-end/platform/fightcade"
 	"context"
 	"fmt"
+	"strconv"
 )
 
 type Fightcade struct {
@@ -75,7 +76,13 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 	case "training", "arcade":
 		return f.launchOffline(ctx, creds, game.AppID, mode)
 	default:
-		_, err = fightcade.Lobby(ctx, creds, game.AppID)
+		matchDuration := 3
+		if s, err := f.db.FightcadeMatchDuration(); err == nil && s != "" {
+			if n, err := strconv.Atoi(s); err == nil {
+				matchDuration = n
+			}
+		}
+		_, err = fightcade.Lobby(ctx, creds, game.AppID, matchDuration)
 		return err
 	}
 }

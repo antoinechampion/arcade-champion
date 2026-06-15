@@ -162,7 +162,7 @@ func Search(ctx context.Context, creds Credentials, query string) (SearchResult,
 	return SearchResult{Channels: channels, Cookie: cookie}, nil
 }
 
-func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, error) {
+func Lobby(ctx context.Context, creds Credentials, game string, matchDuration int) (*MatchEvent, error) {
 	log.Printf("[fightcade] Lobby: starting for game=%q", game)
 	client, err := connect(ctx)
 	if err != nil {
@@ -218,11 +218,10 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 	if gameid == "" {
 		gameid = game
 	}
-	// ranked is 0 for unranked channels; non-zero means ranked. Default to FT3 for ranked channels.
 	channelRanked, _ := joinResp["ranked"].(bool)
 	ranked := 0
 	if channelRanked {
-		ranked = 3
+		ranked = matchDuration
 	}
 	log.Printf("[fightcade] Lobby: channel=%q emulator=%s gameid=%s ranked=%v", channelname, emulator, gameid, channelRanked)
 
