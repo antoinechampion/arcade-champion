@@ -1,3 +1,6 @@
+export let inputLocked = false
+export function setInputLocked(value: boolean) { inputLocked = value }
+
 const STICK_DEADZONE = 0.5
 const REPEAT_DELAY = 400
 const REPEAT_INTERVAL = 150
@@ -39,7 +42,7 @@ export function startGamepadPolling(): () => void {
     if (!running) return
 
     const gp = navigator.getGamepads()[0]
-    if (gp) {
+    if (gp && !inputLocked) {
       const state = readGamepad(gp)
 
       for (const dir of DIRECTIONS) {

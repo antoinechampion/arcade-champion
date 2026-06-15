@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
+import { setInputLocked } from '@/gamepad'
 
 const props = withDefaults(defineProps<{ message?: string; cancellable?: boolean }>(), {
   message: 'Launching…',
@@ -12,15 +13,21 @@ const emit = defineEmits<{ cancel: [] }>()
 const CANCEL_KEYS = new Set(['Escape', ' '])
 
 function onKeydown(e: KeyboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
   if (props.cancellable && CANCEL_KEYS.has(e.key)) {
-    e.preventDefault()
-    e.stopPropagation()
     emit('cancel')
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown, { capture: true }))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown, { capture: true }))
+onMounted(() => {
+  setInputLocked(true)
+  window.addEventListener('keydown', onKeydown, { capture: true })
+})
+onUnmounted(() => {
+  setInputLocked(false)
+  window.removeEventListener('keydown', onKeydown, { capture: true })
+})
 </script>
 
 <template>

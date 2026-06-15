@@ -9,10 +9,13 @@ import LaunchingOverlay from '@/components/design-system/LaunchingOverlay.vue'
 import HudFrame from '@/components/design-system/HudFrame.vue'
 import { fetchRecentlyPlayed, launchGame, imageUrl } from '@/api/client'
 import { usePageNavigation } from '@/composables/navigation'
+import { useRouter } from 'vue-router'
 import type { Game } from '@/api/types'
 import type { LaunchMode } from '@/components/home/LaunchOptions.vue'
 
 usePageNavigation(['featured', 'recentlyPlayed', 'allGames'])
+
+const router = useRouter()
 
 type LaunchPhase = 'matchmaking' | 'launching'
 
@@ -34,7 +37,7 @@ const overlayMessage = computed(() =>
 
 function showLaunching() {
   phase.value = 'launching'
-  setTimeout(() => { phase.value = null }, 10_000)
+  setTimeout(() => router.push('/playing'), 10_000)
 }
 
 function handleLaunch(game: Game) {
