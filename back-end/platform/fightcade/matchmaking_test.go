@@ -57,6 +57,7 @@ func TestMatchmaker_FirstAcceptWinsAndCancelsRest(t *testing.T) {
 		channelName: "chan",
 		username:    "me",
 		myRank:      3,
+		ranked:      3,
 		users: []LobbyUser{
 			{Name: "winner", Rank: 3, Vping: 3},
 			{Name: "loser", Rank: 4, Vping: 3},
@@ -120,7 +121,7 @@ func TestMatchmaker_IncomingChallengeDroppedIfAlreadyMatched(t *testing.T) {
 			// Then push an incoming challenge — accept must be suppressed.
 			reply(conn, map[string]any{
 				"req": "challenge", "user": map[string]any{"name": "late-challenger"},
-				"channelname": "chan", "challengeid": float64(99), "ranked": false,
+				"channelname": "chan", "challengeid": float64(99), "ranked": float64(3),
 			})
 		case "accept":
 			mu.Lock()

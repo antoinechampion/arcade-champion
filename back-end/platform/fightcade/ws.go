@@ -193,9 +193,9 @@ func (c *wsClient) searchChannels(ctx context.Context, query string, page int) (
 	})
 }
 
-func (c *wsClient) challengeUser(ctx context.Context, username, channelname string, challengeid int, ranked bool) (map[string]any, error) {
+func (c *wsClient) challengeUser(ctx context.Context, username, channelname string, challengeid int, ranked int) (map[string]any, error) {
 	if debugMode {
-		log.Printf("[fightcade] wsClient: DEBUG MODE — skipping challenge to %q (channelname=%s challengeid=%d ranked=%v)", username, channelname, challengeid, ranked)
+		log.Printf("[fightcade] wsClient: DEBUG MODE — skipping challenge to %q (channelname=%s challengeid=%d ranked=%d)", username, channelname, challengeid, ranked)
 		return map[string]any{"result": "ok"}, nil
 	}
 	return c.sendCmd(ctx, map[string]any{
@@ -207,9 +207,9 @@ func (c *wsClient) challengeUser(ctx context.Context, username, channelname stri
 	})
 }
 
-func (c *wsClient) acceptChallenge(ctx context.Context, username, channelname string, challengeid int, ranked bool) (map[string]any, error) {
+func (c *wsClient) acceptChallenge(ctx context.Context, username, channelname string, challengeid int, ranked int) (map[string]any, error) {
 	if debugMode {
-		log.Printf("[fightcade] wsClient: DEBUG MODE — skipping accept for %q (channelname=%s challengeid=%d ranked=%v)", username, channelname, challengeid, ranked)
+		log.Printf("[fightcade] wsClient: DEBUG MODE — skipping accept for %q (channelname=%s challengeid=%d ranked=%d)", username, channelname, challengeid, ranked)
 		return map[string]any{"result": "ok"}, nil
 	}
 	return c.sendCmd(ctx, map[string]any{

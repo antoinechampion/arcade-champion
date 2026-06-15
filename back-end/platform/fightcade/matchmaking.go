@@ -15,7 +15,7 @@ type lobbyConfig struct {
 	channelName string
 	emulator    string
 	gameID      string
-	ranked      bool
+	ranked      int // -1=training, 0=unranked, 2/3/5/10/20=FT ranked
 	username    string
 	token       string
 	users       []LobbyUser
@@ -174,7 +174,8 @@ func (m *matchmaker) acceptIncoming(ctx context.Context, msg map[string]any) {
 	channel, _ := msg["channelname"].(string)
 	cidFloat, _ := msg["challengeid"].(float64)
 	cid := int(cidFloat)
-	ranked, _ := msg["ranked"].(bool)
+	rankedFloat, _ := msg["ranked"].(float64)
+	ranked := int(rankedFloat)
 
 	log.Printf("[fightcade] acceptIncoming: accepting challenge from %q (channel=%s challengeID=%d ranked=%v) in 3s", opponent, channel, cid, ranked)
 	go func() {

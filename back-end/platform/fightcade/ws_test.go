@@ -362,7 +362,7 @@ func TestChallengeUser_SendsCorrectPayload(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	_, err := client.challengeUser(ctx, "opponent", "sfiii3nr1", 3, true)
+	_, err := client.challengeUser(ctx, "opponent", "sfiii3nr1", 3, 5)
 	if err != nil {
 		t.Fatalf("challengeUser: %v", err)
 	}
@@ -377,8 +377,8 @@ func TestChallengeUser_SendsCorrectPayload(t *testing.T) {
 	if cid, _ := msg["challengeid"].(float64); cid != 3 {
 		t.Errorf("expected challengeid=3, got %v", cid)
 	}
-	if ranked, _ := msg["ranked"].(bool); !ranked {
-		t.Error("expected ranked=true")
+	if ranked, _ := msg["ranked"].(float64); ranked != 5 {
+		t.Errorf("expected ranked=5 (FT5), got %v", ranked)
 	}
 }
 
@@ -393,7 +393,7 @@ func TestAcceptChallenge_SendsCorrectPayload(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	_, err := client.acceptChallenge(ctx, "challenger", "sfiii3nr1", 5, false)
+	_, err := client.acceptChallenge(ctx, "challenger", "sfiii3nr1", 5, 3)
 	if err != nil {
 		t.Fatalf("acceptChallenge: %v", err)
 	}
@@ -408,7 +408,7 @@ func TestAcceptChallenge_SendsCorrectPayload(t *testing.T) {
 	if cid, _ := msg["challengeid"].(float64); cid != 5 {
 		t.Errorf("expected challengeid=5, got %v", cid)
 	}
-	if ranked, _ := msg["ranked"].(bool); ranked {
-		t.Error("expected ranked=false")
+	if ranked, _ := msg["ranked"].(float64); ranked != 3 {
+		t.Errorf("expected ranked=3 (FT3), got %v", ranked)
 	}
 }

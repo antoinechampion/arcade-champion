@@ -218,8 +218,13 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 	if gameid == "" {
 		gameid = game
 	}
-	isRanked, _ := joinResp["ranked"].(bool)
-	log.Printf("[fightcade] Lobby: channel=%q emulator=%s gameid=%s ranked=%v", channelname, emulator, gameid, isRanked)
+	// ranked is 0 for unranked channels; non-zero means ranked. Default to FT3 for ranked channels.
+	channelRanked, _ := joinResp["ranked"].(bool)
+	ranked := 0
+	if channelRanked {
+		ranked = 3
+	}
+	log.Printf("[fightcade] Lobby: channel=%q emulator=%s gameid=%s ranked=%v", channelname, emulator, gameid, channelRanked)
 
 	usersRaw, _ := joinResp["users"].([]any)
 	lobbyUsers, myRank := parseLobbyUsers(usersRaw, username)
@@ -235,7 +240,7 @@ func Lobby(ctx context.Context, creds Credentials, game string) (*MatchEvent, er
 		channelName: channelname,
 		emulator:    emulator,
 		gameID:      gameid,
-		ranked:      isRanked,
+		ranked:      ranked,
 		username:    username,
 		token:       token,
 		users:       lobbyUsers,
