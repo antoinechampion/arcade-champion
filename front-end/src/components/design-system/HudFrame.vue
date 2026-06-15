@@ -46,7 +46,7 @@ onUnmounted(() => clearInterval(timer))
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 1rem 3.5rem;
+  padding: 2rem 3.5rem;
 }
 
 .clock {
