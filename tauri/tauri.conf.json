@@ -16,9 +16,6 @@
         "title": "Arcade Champion",
         "fullscreen": true,
         "decorations": false,
-        "resizable": false,
-        "width": 1920,
-        "height": 1080,
         "additionalBrowserArgs": "--disable-web-security"
       }
     ]

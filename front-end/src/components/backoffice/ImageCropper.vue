@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
+import { proxyImageUrl } from '@/api/client'
 
 const props = withDefaults(defineProps<{
   frameWidth: number
@@ -8,15 +9,7 @@ const props = withDefaults(defineProps<{
   outputScale?: number
 }>(), { outputScale: 1 })
 
-// In dev, external images must be proxied through localhost so the canvas can
-// read their pixels (cross-origin taints the canvas). In production (Tauri),
-// web security is disabled so no proxy is needed. Local paths (/images/...) are
-// already same-origin and don't need proxying.
-const proxiedUrl = computed(() => {
-  const url = props.url
-  if (!import.meta.env.DEV || !url.startsWith('http')) return url
-  return `/api/local-dev-image-proxy?url=${encodeURIComponent(url)}`
-})
+const proxiedUrl = computed(() => proxyImageUrl(props.url))
 
 const emit = defineEmits<{
   cropped: [dataUrl: string]
@@ -144,6 +137,7 @@ onUnmounted(() => { dragging = false })
         v-show="loaded"
         ref="imgRef"
         :src="proxiedUrl"
+        crossorigin="anonymous"
         class="cropper-img"
         :style="{
           transform: `translate(-50%, -50%) translate(${translateX}px, ${translateY}px) scale(${scale})`,

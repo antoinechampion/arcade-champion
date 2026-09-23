@@ -52,6 +52,8 @@ func main() {
 		Methods("GET", "PUT")
 	r.HandleFunc("/api/launch", handlers.LaunchGameHandler(db)).
 		Methods("POST")
+	r.HandleFunc("/api/proxy-image", handlers.ProxyImageHandler()).
+		Methods("GET")
 	r.PathPrefix("/images/").Handler(
 		http.StripPrefix("/images/", http.FileServer(http.Dir(imagesDir))),
 	)

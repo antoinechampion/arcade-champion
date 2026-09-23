@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchAllGames, fetchGame, createGame, deleteGame, searchPlatformGames, imageUrl } from '../client'
+import { fetchAllGames, fetchGame, createGame, deleteGame, searchPlatformGames, imageUrl, proxyImageUrl } from '../client'
 import type { GameInput } from '../types'
 
 beforeEach(() => {
@@ -98,5 +98,16 @@ describe('searchPlatformGames', () => {
 describe('imageUrl', () => {
   it('returns /images/ prefixed path', () => {
     expect(imageUrl('1_cover_abc.jpg')).toBe('/images/1_cover_abc.jpg')
+  })
+})
+
+describe('proxyImageUrl', () => {
+  it('returns un-proxied path for local / relative paths', () => {
+    expect(proxyImageUrl('/images/1_cover_abc.jpg')).toBe('/images/1_cover_abc.jpg')
+    expect(proxyImageUrl('')).toBe('')
+  })
+
+  it('proxies external http(s) urls', () => {
+    expect(proxyImageUrl('https://example.com/cover.jpg')).toBe('/api/proxy-image?url=https%3A%2F%2Fexample.com%2Fcover.jpg')
   })
 })

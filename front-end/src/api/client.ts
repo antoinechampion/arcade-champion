@@ -23,6 +23,12 @@ export function imageUrl(filename: string): string {
   return `${BASE}/images/${filename}`
 }
 
+export function proxyImageUrl(url: string): string {
+  if (!url || !url.startsWith('http')) return url
+  if (BASE && url.startsWith(BASE)) return url
+  return `${BASE}/api/proxy-image?url=${encodeURIComponent(url)}`
+}
+
 export async function fetchRecentlyPlayed(): Promise<Game[]> {
   const res = await api('/api/games/recent')
   if (!res.ok) throw new Error(`Failed to fetch recently played: ${res.status}`)
