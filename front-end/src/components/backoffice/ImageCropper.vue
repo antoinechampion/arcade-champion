@@ -37,6 +37,15 @@ function onLoad() {
   const img = imgRef.value!
   imgNaturalWidth = img.naturalWidth
   imgNaturalHeight = img.naturalHeight
+  console.info('[image-cropper] source loaded', {
+    url: props.url,
+    naturalWidth: imgNaturalWidth,
+    naturalHeight: imgNaturalHeight,
+    frameWidth: props.frameWidth,
+    frameHeight: props.frameHeight,
+    outputWidth: props.frameWidth * props.outputScale,
+    outputHeight: props.frameHeight * props.outputScale,
+  })
   loaded.value = true
   error.value = false
 
@@ -50,6 +59,7 @@ function onLoad() {
 }
 
 function onError() {
+  console.error('[image-cropper] source failed to load', { url: props.url })
   error.value = true
   loaded.value = false
 }
@@ -108,7 +118,15 @@ function emitCrop() {
   const drawY = (canvas.height - scaledH) / 2 + translateY.value * s
 
   ctx.drawImage(imgRef.value!, drawX, drawY, scaledW, scaledH)
-  emit('cropped', canvas.toDataURL('image/jpeg', 0.85))
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+  console.info('[image-cropper] crop emitted', {
+    sourceWidth: imgNaturalWidth,
+    sourceHeight: imgNaturalHeight,
+    outputWidth: canvas.width,
+    outputHeight: canvas.height,
+    outputBytesApproximate: dataUrl.length,
+  })
+  emit('cropped', dataUrl)
 }
 
 watch(() => props.url, () => {

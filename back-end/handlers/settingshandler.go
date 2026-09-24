@@ -29,6 +29,7 @@ func SettingsHandler(db *database.DB) http.HandlerFunc {
 }
 
 func getSettings(db *database.DB, w http.ResponseWriter) {
+	log.Printf("[settings] loading settings")
 	username, err := db.FightcadeUsername()
 	if err != nil {
 		log.Printf("get settings fightcade.username: %v", err)
@@ -74,6 +75,7 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 		http.Error(w, "failed to load settings", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("[settings] loaded image upscaler configured=%t path=%q", realesrganPath != "", realesrganPath)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(settings{
@@ -94,6 +96,7 @@ func putSettings(db *database.DB, w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
+	log.Printf("[settings] saving image upscaler configured=%t path=%q", s.RealesrganPath != "", s.RealesrganPath)
 
 	if err := db.SetFightcadeUsername(s.FightcadeUsername); err != nil {
 		log.Printf("put settings fightcade.username: %v", err)

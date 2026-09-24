@@ -206,26 +206,40 @@ func DeleteGameHandler(db *database.DB) http.HandlerFunc {
 func saveFormImage(db *database.DB, r *http.Request, field string, gameID int64) (string, error) {
 	file, header, err := r.FormFile(field)
 	if err != nil {
+		log.Printf("[image-upload] gameID=%d field=%q no file error=%v", gameID, field, err)
 		return "", err
 	}
 	defer file.Close()
 
 	ct := header.Header.Get("Content-Type")
+	log.Printf("[image-upload] gameID=%d field=%q filename=%q contentType=%q declaredSize=%d", gameID, field, header.Filename, ct, header.Size)
 	if ct != "" && ct != "image/jpeg" && ct != "image/png" && ct != "image/webp" {
+		log.Printf("[image-upload] rejected gameID=%d field=%q reason=unsupported-content-type contentType=%q", gameID, field, ct)
 		return "", fmt.Errorf("unsupported image type: %s", ct)
 	}
 
 	data, err := io.ReadAll(file)
 	if err != nil {
+		log.Printf("[image-upload] read failed gameID=%d field=%q error=%v", gameID, field, err)
 		return "", err
 	}
+	log.Printf("[image-upload] read gameID=%d field=%q bytes=%d", gameID, field, len(data))
 	upscalerPath, err := db.RealesrganPath()
 	if err != nil {
+		log.Printf("[image-upload] load upscaler setting failed gameID=%d field=%q error=%v", gameID, field, err)
 		return "", err
 	}
+	log.Printf("[image-upload] upscaler setting gameID=%d field=%q configured=%t path=%q", gameID, field, upscalerPath != "", upscalerPath)
 	data, err = upscaleImage(data, field, upscalerPath)
 	if err != nil {
+		log.Printf("[image-upload] upscale failed gameID=%d field=%q error=%v", gameID, field, err)
 		return "", err
 	}
-	return db.SaveImage(gameID, field, data)
+	filename, err := db.SaveImage(gameID, field, data)
+	if err != nil {
+		log.Printf("[image-upload] save failed gameID=%d field=%q bytes=%d error=%v", gameID, field, len(data), err)
+		return "", err
+	}
+	log.Printf("[image-upload] saved gameID=%d field=%q filename=%q bytes=%d", gameID, field, filename, len(data))
+	return filename, nil
 }

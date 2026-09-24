@@ -50,6 +50,10 @@ export async function fetchGame(id: string): Promise<Game | undefined> {
 }
 
 export async function createGame(input: GameInput): Promise<Game> {
+  console.info('[api] create game upload', {
+    coverBytes: input.cover?.size ?? 0,
+    bannerBytes: input.banner?.size ?? 0,
+  })
   const res = await api('/api/games', {
     method: 'POST',
     body: buildFormData(input),
@@ -59,6 +63,11 @@ export async function createGame(input: GameInput): Promise<Game> {
 }
 
 export async function updateGame(id: string, input: GameInput): Promise<Game> {
+  console.info('[api] update game upload', {
+    id,
+    coverBytes: input.cover?.size ?? 0,
+    bannerBytes: input.banner?.size ?? 0,
+  })
   const res = await api(`/api/games/${id}`, {
     method: 'PUT',
     body: buildFormData(input),
@@ -96,12 +105,18 @@ export async function launchGame(platform: Platform, appId: string, launchOption
 }
 
 export async function fetchSettings(): Promise<Settings> {
+  console.info('[api] fetch settings')
   const res = await api('/api/settings')
   if (!res.ok) throw new Error(`Failed to fetch settings: ${res.status}`)
   return res.json()
 }
 
 export async function updateSettings(settings: Settings): Promise<Settings> {
+  console.info('[api] update settings', {
+    ...settings,
+    fightcadePassword: settings.fightcadePassword ? '[configured]' : '',
+    fightcadeCookie: settings.fightcadeCookie ? '[configured]' : '',
+  })
   const res = await api('/api/settings', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },

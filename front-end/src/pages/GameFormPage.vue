@@ -65,6 +65,15 @@ function dataUrlToBlob(dataUrl: string): Blob {
 }
 
 async function save() {
+  console.info('[game-form] save image state', {
+    isEdit: isEdit.value,
+    coverSource: coverSourceUrl.value,
+    bannerSource: bannerSourceUrl.value,
+    coverDataType: coverData.value.startsWith('data:') ? 'data-url' : 'existing-url',
+    bannerDataType: bannerData.value.startsWith('data:') ? 'data-url' : 'existing-url',
+    coverDataLength: coverData.value.length,
+    bannerDataLength: bannerData.value.length,
+  })
   const input: GameInput = {
     title: title.value,
     platform: platform.value,
@@ -76,8 +85,10 @@ async function save() {
   }
 
   if (isEdit.value) {
+    console.info('[game-form] updating game', { id: editId.value })
     await updateGame(editId.value!, input)
   } else {
+    console.info('[game-form] creating game')
     await createGame(input)
   }
 
