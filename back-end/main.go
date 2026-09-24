@@ -3,8 +3,10 @@ package main
 import (
 	"back-end/database"
 	"back-end/handlers"
+	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -22,6 +24,18 @@ func cors(next http.Handler) http.Handler {
 }
 
 func main() {
+	logPath, err := database.LogPath()
+	if err != nil {
+		log.Fatal(err)
+	}
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer logFile.Close()
+	log.SetOutput(io.MultiWriter(os.Stderr, logFile))
+	log.Printf("[startup] logging to %s", logPath)
+
 	db, err := database.Open()
 	if err != nil {
 		log.Fatal(err)

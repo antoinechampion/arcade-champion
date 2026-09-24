@@ -17,16 +17,34 @@ type DB struct {
 }
 
 func Open() (*DB, error) {
-	dir, err := os.UserConfigDir()
+	dir, err := configDir()
 	if err != nil {
 		return nil, err
 	}
-	dir = filepath.Join(dir, "arcade-champion")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, err
 	}
 	path := filepath.Join(dir, "arcade-champion.db")
 	return OpenPath(path)
+}
+
+func LogPath() (string, error) {
+	dir, err := configDir()
+	if err != nil {
+		return "", err
+	}
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "arcade-champion.log"), nil
+}
+
+func configDir() (string, error) {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "arcade-champion"), nil
 }
 
 func OpenPath(path string) (*DB, error) {

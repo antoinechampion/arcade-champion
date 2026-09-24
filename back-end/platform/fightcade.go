@@ -5,6 +5,7 @@ import (
 	"back-end/platform/fightcade"
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -66,6 +67,7 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 	if mode == "" {
 		mode = "online"
 	}
+	log.Printf("[launch-fightcade] starting title=%q appID=%q mode=%q", game.Title, game.AppID, mode)
 
 	creds, err := f.credentials()
 	if err != nil {
@@ -74,7 +76,13 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 
 	switch mode {
 	case "training", "arcade":
-		return f.launchOffline(ctx, creds, game.AppID, mode)
+		err := f.launchOffline(ctx, creds, game.AppID, mode)
+		if err != nil {
+			log.Printf("[launch-fightcade] failed title=%q appID=%q mode=%q error=%v", game.Title, game.AppID, mode, err)
+			return err
+		}
+		log.Printf("[launch-fightcade] started title=%q appID=%q mode=%q", game.Title, game.AppID, mode)
+		return nil
 	default:
 		matchDuration := 3
 		if s, err := f.db.FightcadeMatchDuration(); err == nil && s != "" {
@@ -83,7 +91,12 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 			}
 		}
 		_, err = fightcade.Lobby(ctx, creds, game.AppID, matchDuration)
-		return err
+		if err != nil {
+			log.Printf("[launch-fightcade] failed title=%q appID=%q mode=%q matchDuration=%d error=%v", game.Title, game.AppID, mode, matchDuration, err)
+			return err
+		}
+		log.Printf("[launch-fightcade] started title=%q appID=%q mode=%q matchDuration=%d", game.Title, game.AppID, mode, matchDuration)
+		return nil
 	}
 }
 

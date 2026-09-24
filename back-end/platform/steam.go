@@ -5,6 +5,7 @@ import (
 	"back-end/platform/steam"
 	"context"
 	"fmt"
+	"log"
 	"os/exec"
 	"runtime"
 )
@@ -36,12 +37,20 @@ func (s Steam) Search(query string) ([]SearchResult, error) {
 
 func (s Steam) Launch(_ context.Context, game database.Game, _ LaunchOptions) error {
 	url := fmt.Sprintf("steam://run/%s", game.AppID)
+	log.Printf("[launch-steam] starting title=%q appID=%q url=%q os=%q", game.Title, game.AppID, url, runtime.GOOS)
+	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "darwin":
-		return exec.Command("open", url).Start()
+		cmd = exec.Command("open", url)
 	case "windows":
-		return exec.Command("cmd", "/c", "start", url).Start()
+		cmd = exec.Command("cmd", "/c", "start", url)
 	default:
-		return exec.Command("xdg-open", url).Start()
+		cmd = exec.Command("xdg-open", url)
 	}
+	if err := cmd.Start(); err != nil {
+		log.Printf("[launch-steam] failed title=%q appID=%q error=%v", game.Title, game.AppID, err)
+		return err
+	}
+	log.Printf("[launch-steam] started title=%q appID=%q pid=%d", game.Title, game.AppID, cmd.Process.Pid)
+	return nil
 }

@@ -29,6 +29,7 @@ func LaunchGameHandler(db *database.DB) http.HandlerFunc {
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
+		log.Printf("[launch] requested platform=%q title=%q appID=%q options=%v", dto.Platform, game.Title, game.AppID, dto.LaunchOptions)
 		_ = db.TouchLastPlayed(game.ID)
 
 		p := platform.Get(dto.Platform, db)
@@ -38,10 +39,10 @@ func LaunchGameHandler(db *database.DB) http.HandlerFunc {
 		}
 		err = p.Launch(r.Context(), game, platform.LaunchOptions(dto.LaunchOptions))
 		if err != nil {
-			log.Printf("failed to launch the game: %s", err)
+			log.Printf("[launch] failed platform=%q title=%q appID=%q error=%v", dto.Platform, game.Title, game.AppID, err)
 			http.Error(w, "", http.StatusInternalServerError)
 			return
 		}
-		log.Printf("launched game: %s", game.AppID)
+		log.Printf("[launch] succeeded platform=%q title=%q appID=%q", dto.Platform, game.Title, game.AppID)
 	}
 }
