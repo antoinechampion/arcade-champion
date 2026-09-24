@@ -58,3 +58,26 @@ func TestFightcadeSettings(t *testing.T) {
 		t.Fatalf("expected 'secret', got %q", password)
 	}
 }
+
+func TestRealesrganPath(t *testing.T) {
+	db := openTestDB(t)
+
+	path, err := db.RealesrganPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if path != "" {
+		t.Fatalf("expected empty path, got %q", path)
+	}
+
+	if err := db.SetRealesrganPath("/usr/local/bin/realesrgan-ncnn-vulkan"); err != nil {
+		t.Fatal(err)
+	}
+	path, err = db.RealesrganPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if path != "/usr/local/bin/realesrgan-ncnn-vulkan" {
+		t.Fatalf("unexpected path %q", path)
+	}
+}

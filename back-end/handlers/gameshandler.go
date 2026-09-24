@@ -12,7 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
 func RecentlyPlayedHandler(db *database.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		games, err := db.ListRecentlyPlayed(10)
@@ -66,10 +65,10 @@ func CreateGameHandler(db *database.DB) http.HandlerFunc {
 		}
 
 		game := database.Game{
-			Title:       r.FormValue("title"),
-			Platform:    r.FormValue("platform"),
-			Developer:   r.FormValue("developer"),
-			AppID:       r.FormValue("appId"),
+			Title:     r.FormValue("title"),
+			Platform:  r.FormValue("platform"),
+			Developer: r.FormValue("developer"),
+			AppID:     r.FormValue("appId"),
 		}
 		year, _ := strconv.Atoi(r.FormValue("releaseYear"))
 		game.ReleaseYear = year
@@ -217,6 +216,14 @@ func saveFormImage(db *database.DB, r *http.Request, field string, gameID int64)
 	}
 
 	data, err := io.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+	upscalerPath, err := db.RealesrganPath()
+	if err != nil {
+		return "", err
+	}
+	data, err = upscaleImage(data, field, upscalerPath)
 	if err != nil {
 		return "", err
 	}

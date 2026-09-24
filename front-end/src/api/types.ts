@@ -33,4 +33,5 @@ export interface Settings {
   fightcadeMatchDuration: string
   mamePath: string
   steamPath: string
+  realesrganPath: string
 }

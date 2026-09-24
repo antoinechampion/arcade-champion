@@ -11,6 +11,7 @@ const fightcadeCookie = ref('')
 const fightcadeMatchDuration = ref('3')
 const mamePath = ref('')
 const steamPath = ref('')
+const realesrganPath = ref('')
 
 const matchDurationOptions = [
   { value: '0', label: 'Unranked' },
@@ -29,6 +30,7 @@ onMounted(async () => {
   fightcadeMatchDuration.value = s.fightcadeMatchDuration || '3'
   mamePath.value = s.mamePath
   steamPath.value = s.steamPath
+  realesrganPath.value = s.realesrganPath
 })
 
 async function save() {
@@ -39,6 +41,7 @@ async function save() {
     fightcadeMatchDuration: fightcadeMatchDuration.value,
     mamePath: mamePath.value,
     steamPath: steamPath.value,
+    realesrganPath: realesrganPath.value,
   })
   router.push('/backoffice')
 }
@@ -91,6 +94,15 @@ async function save() {
         <label>
           Executable Path
           <input v-model="mamePath" type="text" placeholder="/usr/bin/mame">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Image Upscaler</legend>
+
+        <label>
+          Real-ESRGAN Executable Path
+          <input v-model="realesrganPath" type="text" placeholder="/usr/local/bin/realesrgan-ncnn-vulkan">
         </label>
       </fieldset>
 
