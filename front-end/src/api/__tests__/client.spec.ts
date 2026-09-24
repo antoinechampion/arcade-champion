@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchAllGames, fetchGame, createGame, deleteGame, searchPlatformGames, imageUrl, proxyImageUrl } from '../client'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { fetchAllGames, fetchGame, createGame, deleteGame, searchPlatformGames, imageUrl, proxyImageUrl, exitApp } from '../client'
 import type { GameInput } from '../types'
 
 beforeEach(() => {
@@ -109,5 +109,38 @@ describe('proxyImageUrl', () => {
 
   it('proxies external http(s) urls', () => {
     expect(proxyImageUrl('https://example.com/cover.jpg')).toBe('/api/proxy-image?url=https%3A%2F%2Fexample.com%2Fcover.jpg')
+  })
+})
+
+describe('exitApp', () => {
+  const originalTauri = (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+  const originalClose = window.close
+
+  afterEach(() => {
+    if (originalTauri !== undefined) {
+      ;(window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ = originalTauri
+    } else {
+      delete (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+    }
+    window.close = originalClose
+  })
+
+  it('invokes exit_app when in Tauri environment', async () => {
+    const invokeSpy = vi.fn().mockResolvedValue(undefined)
+    ;(window as unknown as { __TAURI_INTERNALS__: { invoke: typeof invokeSpy } }).__TAURI_INTERNALS__ = {
+      invoke: invokeSpy,
+    }
+
+    await exitApp()
+    expect(invokeSpy).toHaveBeenCalledWith('exit_app')
+  })
+
+  it('falls back to window.close in browser environment', async () => {
+    delete (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+    const closeSpy = vi.fn()
+    window.close = closeSpy
+
+    await exitApp()
+    expect(closeSpy).toHaveBeenCalled()
   })
 })

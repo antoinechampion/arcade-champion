@@ -1,5 +1,10 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[tauri::command]
+fn exit_app(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
 fn main() {
     #[cfg(target_os = "linux")]
     {
@@ -12,6 +17,7 @@ fn main() {
     }
 
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![exit_app])
         .setup(|app| {
             use tauri::Manager;
             if let Some(window) = app.get_webview_window("main") {
@@ -21,4 +27,15 @@ fn main() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_exit_app_handler() {
+        let _builder = tauri::Builder::default()
+            .invoke_handler(tauri::generate_handler![exit_app]);
+    }
 }

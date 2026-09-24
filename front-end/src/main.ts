@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory, RouterView } from 'vue-router'
 import HomePage from '@/pages/HomePage.vue'
 import { startGamepadPolling } from './gamepad'
+import { registerGlobalShortcuts } from './keyboard'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -21,9 +22,4 @@ createApp(RouterView).use(router).mount('#app')
 startGamepadPolling()
 
 document.body.focus()
-document.addEventListener('keydown', (e) => {
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-    const tag = (e.target as HTMLElement).tagName
-    if (tag !== 'INPUT' && tag !== 'TEXTAREA') e.preventDefault()
-  }
-})
+registerGlobalShortcuts()

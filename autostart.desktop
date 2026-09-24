@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Arcade Champion Kiosk
+Comment=Launches the Arcade Champion Tauri Frontend
+Exec=/var/home/arcade/arcade-champion/tauri/target/release/arcade-champion
+Terminal=false
+X-KDE-Wayland-Interfaces=
+Categories=Utility;

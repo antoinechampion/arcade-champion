@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import { fetchAllGames, deleteGame } from '@/api/client'
+import { fetchAllGames, deleteGame, exitApp } from '@/api/client'
 import type { Game } from '@/api/types'
 
 const router = useRouter()
@@ -29,6 +29,7 @@ onMounted(loadGames)
       <div class="flex items-center gap-3">
         <RouterLink to="/backoffice/settings" class="settings-link">Settings</RouterLink>
         <RouterLink to="/backoffice/add" class="add-btn">+ Add Game</RouterLink>
+        <button class="quit-btn" @click="exitApp">Quit App</button>
       </div>
     </div>
 
@@ -102,6 +103,23 @@ onMounted(loadGames)
 
 .add-btn:hover {
   background: var(--color-primary-light);
+}
+
+.quit-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.quit-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 
 .game-table {

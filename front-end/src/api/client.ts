@@ -110,3 +110,12 @@ export async function updateSettings(settings: Settings): Promise<Settings> {
   if (!res.ok) throw new Error(`Failed to update settings: ${res.status}`)
   return res.json()
 }
+
+export async function exitApp(): Promise<void> {
+  if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) {
+    // @ts-expect-error Tauri internal invoke
+    await window.__TAURI_INTERNALS__.invoke('exit_app')
+  } else if (typeof window !== 'undefined' && typeof window.close === 'function') {
+    window.close()
+  }
+}
