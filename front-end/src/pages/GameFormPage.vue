@@ -150,7 +150,6 @@ async function save() {
           :url="coverSourceUrl"
           :frame-width="200"
           :frame-height="267"
-          :output-scale="2"
           @cropped="coverData = $event"
         />
 
@@ -163,7 +162,6 @@ async function save() {
           :url="bannerSourceUrl"
           :frame-width="640"
           :frame-height="360"
-          :output-scale="4"
           @cropped="bannerData = $event"
         />
       </fieldset>

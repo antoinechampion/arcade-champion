@@ -2,12 +2,11 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { proxyImageUrl } from '@/api/client'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   frameWidth: number
   frameHeight: number
   url: string
-  outputScale?: number
-}>(), { outputScale: 1 })
+}>()
 
 const proxiedUrl = computed(() => proxyImageUrl(props.url))
 
@@ -43,8 +42,6 @@ function onLoad() {
     naturalHeight: imgNaturalHeight,
     frameWidth: props.frameWidth,
     frameHeight: props.frameHeight,
-    outputWidth: props.frameWidth * props.outputScale,
-    outputHeight: props.frameHeight * props.outputScale,
   })
   loaded.value = true
   error.value = false
@@ -105,19 +102,26 @@ function clampTranslation() {
 }
 
 function emitCrop() {
-  const s = props.outputScale
+  const minScale = Math.max(props.frameWidth / imgNaturalWidth, props.frameHeight / imgNaturalHeight)
+  const zoomFactor = scale.value / minScale
+  const baseCropWidth = Math.min(imgNaturalWidth, Math.round(imgNaturalHeight * props.frameWidth / props.frameHeight))
+  const baseCropHeight = Math.min(imgNaturalHeight, Math.round(imgNaturalWidth * props.frameHeight / props.frameWidth))
+  const cropWidth = Math.max(1, Math.round(baseCropWidth / zoomFactor))
+  const cropHeight = Math.max(1, Math.round(baseCropHeight / zoomFactor))
+  const sourceX = Math.max(0, Math.min(
+    imgNaturalWidth - cropWidth,
+    (imgNaturalWidth - cropWidth) / 2 - translateX.value / scale.value,
+  ))
+  const sourceY = Math.max(0, Math.min(
+    imgNaturalHeight - cropHeight,
+    (imgNaturalHeight - cropHeight) / 2 - translateY.value / scale.value,
+  ))
   const canvas = document.createElement('canvas')
-  canvas.width = props.frameWidth * s
-  canvas.height = props.frameHeight * s
+  canvas.width = cropWidth
+  canvas.height = cropHeight
   const ctx = canvas.getContext('2d')!
 
-  const scaledW = imgNaturalWidth * scale.value * s
-  const scaledH = imgNaturalHeight * scale.value * s
-
-  const drawX = (canvas.width - scaledW) / 2 + translateX.value * s
-  const drawY = (canvas.height - scaledH) / 2 + translateY.value * s
-
-  ctx.drawImage(imgRef.value!, drawX, drawY, scaledW, scaledH)
+  ctx.drawImage(imgRef.value!, sourceX, sourceY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight)
   const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
   console.info('[image-cropper] crop emitted', {
     sourceWidth: imgNaturalWidth,
@@ -125,6 +129,7 @@ function emitCrop() {
     outputWidth: canvas.width,
     outputHeight: canvas.height,
     outputBytesApproximate: dataUrl.length,
+    enlarged: false,
   })
   emit('cropped', dataUrl)
 }
