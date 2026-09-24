@@ -48,12 +48,15 @@ set -euo pipefail
 BACKEND=/var/home/arcade/arcade-champion/back-end/back-end
 FRONTEND=/var/home/arcade/arcade-champion/tauri/target/release/arcade-champion
 
+steam -silent &
+
 "$BACKEND" &
 backend_pid=$!
 
 cleanup() {
   kill "$backend_pid" 2>/dev/null || true
   wait "$backend_pid" 2>/dev/null || true
+  steam -shutdown >/dev/null 2>&1 || true
 }
 
 trap cleanup EXIT INT TERM
@@ -62,6 +65,8 @@ trap cleanup EXIT INT TERM
 ```
 
 KWin starts this script only after the Wayland and XWayland displays are available. Both the back-end and front-end therefore inherit the same `WAYLAND_DISPLAY`, `DISPLAY`, `XAUTHORITY`, and DBus session values. Games launched by the back-end inherit them in turn.
+
+Steam is started silently inside the same display environment. The back-end launches a Steam game on Linux with `steam -applaunch <appID>` instead of relying on `xdg-open` and the desktop's `steam://` URL handler, which is not reliably available in this minimal session.
 
 Make all scripts executable:
 

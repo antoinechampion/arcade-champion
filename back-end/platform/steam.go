@@ -45,8 +45,9 @@ func (s Steam) Launch(_ context.Context, game database.Game, _ LaunchOptions) er
 	case "windows":
 		cmd = exec.Command("cmd", "/c", "start", url)
 	default:
-		cmd = exec.Command("xdg-open", url)
+		cmd = exec.Command("steam", "-applaunch", game.AppID)
 	}
+	log.Printf("[launch-steam] command=%q args=%q", cmd.Path, cmd.Args[1:])
 	if err := cmd.Start(); err != nil {
 		log.Printf("[launch-steam] failed title=%q appID=%q error=%v", game.Title, game.AppID, err)
 		return err
