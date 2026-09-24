@@ -35,6 +35,14 @@ func main() {
 	defer logFile.Close()
 	log.SetOutput(io.MultiWriter(os.Stderr, logFile))
 	log.Printf("[startup] logging to %s", logPath)
+	log.Printf(
+		"[startup] session DISPLAY=%q WAYLAND_DISPLAY=%q XAUTHORITY=%q XDG_RUNTIME_DIR=%q DBUS_SESSION_BUS_ADDRESS configured=%t",
+		os.Getenv("DISPLAY"),
+		os.Getenv("WAYLAND_DISPLAY"),
+		os.Getenv("XAUTHORITY"),
+		os.Getenv("XDG_RUNTIME_DIR"),
+		os.Getenv("DBUS_SESSION_BUS_ADDRESS") != "",
+	)
 
 	db, err := database.Open()
 	if err != nil {
