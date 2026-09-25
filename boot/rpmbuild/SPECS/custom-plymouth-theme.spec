@@ -1,38 +1,31 @@
-Summary:        A custom plymouth theme
+Summary:        Arcade Champion plymouth boot theme
 Name:           custom-plymouth-theme
 Version:        1.0.0
 Release:        1%{?dist}
 License:        GPLv2+
 Group:          System Environment/Base
 URL:            https://github.com/kkklemennn/rpm-custom-plymouth-theme
-Source0:	custom-plymouth-theme-1.0.0.tar.gz
+Source0:        custom-plymouth-theme-1.0.0.tar.gz
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}
 BuildArch:      noarch
-Requires:       plymouth, plymouth-plugin-script, plymouth-graphics-libs, gnu-free-sans-fonts
-BuildRequires:  kernel-devel
+Requires:       plymouth
 
-%define themedir     %{_datadir}/plymouth/themes/custom
-%define plymouthconf %{_sysconfdir}/plymouth/plymouthd.conf
+%define themedir %{_datadir}/plymouth/themes/arcade
 
 %description
-The %{name} package contains the custom theme for plymouth.
+The %{name} package contains the Arcade Champion boot theme for plymouth.
 
 %prep
 %autosetup -p1
 
 %install
-
-install -m 755 -d %{buildroot}/%{themedir}
-install -m 755 -p -D custom.plymouth -t %{buildroot}/%{themedir}
-install -m 755 -p -D *.png -t %{buildroot}/%{themedir}
+install -d -m 755 %{buildroot}%{themedir}
+install -m 644 -p arcade.plymouth %{buildroot}%{themedir}/arcade.plymouth
+install -m 644 -p *.png %{buildroot}%{themedir}/
 
 %files
-%{themedir}/custom.plymouth
-%{themedir}/custom.script
-%{themedir}/background.png
-%{themedir}/progress_bar.png
-%{themedir}/progress_box.png
+%dir %{themedir}
+%{themedir}/*
 
 %changelog
 * Wed Mar 06 2024 Klemen Klemar <klemen.klemar@hotmail.com> - 1.0.0
