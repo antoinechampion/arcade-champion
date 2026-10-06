@@ -157,8 +157,12 @@ Your home directory is shared with Toolbox, so the RPM created in `~/rpmbuild/` 
 Layer it into the Bazzite deployment:
 
 ```bash
-sudo rpm-ostree install \
-  ~/rpmbuild/RPMS/noarch/arcade-champion-session*
+sudo rpm-ostree install ~/rpmbuild/RPMS/noarch/arcade-champion-session*
+```
+Cleanup:
+
+```bash
+rm -rf ~/rpmbuild
 ```
 
 Then reboot into the new deployment:
@@ -180,12 +184,65 @@ arcade.desktop
 plasma.desktop
 ```
 
-Cleanup:
-
-```bash
-toolbox rm -f rpm-builder
-```
-
 ## Plasma Login configuration
 
 Reboot, try to log in using the Arcade Champion session. If everything works well, go to System Settings \-> Connexion screen and enable autologin in this session (do not enable automated relogin).
+
+## Custom loading screen
+
+### 1. Build the theme RPM
+
+```bash
+cd boot
+toolbox create --container rpm-builder # or toolbox enter rpm-builder
+rpmbuild --define "_topdir $(pwd)/rpmbuild" -ba rpmbuild/SPECS/custom-plymouth-theme.spec
+exit
+```
+
+### 2. Layer it into the ostree
+
+```bash
+sudo rpm-ostree install rpmbuild/RPMS/noarch/... # You need to pass the actual package name
+```
+
+### 3. Select the theme
+
+```bash
+sudo plymouth-set-default-theme custom-theme -R
+```
+
+### 4. Regenerate initramfs
+
+```bash
+sudo rpm-ostree initramfs --enable --reboot
+```
+
+## Speed up boot
+
+In the BIOS, turning on Fast Boot and turning off network boot (PXE), CSM, and any boot devices you don't use usually saves several seconds.
+
+Turn off network readiness wait:
+
+```bash
+sudo systemctl disable NetworkManager-wait-online.service
+```
+
+Auto hide the GRUB:
+
+```bash
+sudo grub2-editenv - set menu_auto_hide=1
+```
+
+GRUB will only show when you press Shift or Esc, or on a failed boot.
+
+The initramfs is built to boot on any hardware. Most of it is drivers and firmware the cabinet doesn't use.
+`dracut/99-zz-arcade.conf` shrinks the initramfs and stops force-loading the NVIDIA driver, so the theme shows right after GRUB instead of after a blank screen: 
+
+```bash
+sudo cp dracut/99-zz-arcade.conf /etc/dracut.conf.d/ && rpm-ostree initramfs --disable && rpm-ostree initramfs --enable --reboot
+```
+
+To revert, remove the file and run the same `--disable`/`--enable` pair.
+
+/!\ Note: in case of a change in hardware, this needs to be disabled and a new corresponding file regenerated.
+
