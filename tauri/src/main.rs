@@ -25,6 +25,13 @@ fn main() {
             }
             Ok(())
         })
+        // Shown once the front-end has hidden the cursor: WebKit picks the cursor when the window
+        // appears under the pointer, and otherwise only on mouse moves.
+        .on_page_load(|webview, payload| {
+            if payload.event() == tauri::webview::PageLoadEvent::Finished {
+                let _ = webview.window().show();
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

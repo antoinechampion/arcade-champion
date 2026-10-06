@@ -16,6 +16,7 @@
         "title": "Arcade Champion",
         "fullscreen": true,
         "decorations": false,
+        "visible": false,
         "additionalBrowserArgs": "--disable-web-security"
       }
     ]

@@ -188,6 +188,17 @@ plasma.desktop
 
 Reboot, try to log in using the Arcade Champion session. If everything works well, go to System Settings \-> Connexion screen and enable autologin in this session (do not enable automated relogin).
 
+## Hide the mouse cursor
+
+WebKit only applies the front-end's `cursor: none` on a mouse event, so an idle cursor stays visible. Let KWin hide it after 10 seconds of inactivity (same delay as the front-end), while the front-end keeps it hidden on small mouse movements:
+
+```bash
+kwriteconfig6 --file kwinrc --group Plugins --key hidecursorEnabled true
+kwriteconfig6 --file kwinrc --group Effect-hidecursor --key InactivityDuration 10
+```
+
+This is the same as System Settings \-> Desktop Effects \-> Hide Cursor in a regular Plasma session. Log out and back in to apply.
+
 ## Custom loading screen
 
 ### 1. Build the theme RPM
