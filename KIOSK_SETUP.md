@@ -208,7 +208,7 @@ sudo rpm-ostree install rpmbuild/RPMS/noarch/... # You need to pass the actual p
 ### 3. Select the theme
 
 ```bash
-sudo plymouth-set-default-theme custom-theme -R
+sudo plymouth-set-default-theme arcade -R
 ```
 
 ### 4. Regenerate initramfs
