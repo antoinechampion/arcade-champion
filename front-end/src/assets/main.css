@@ -1,7 +1,2 @@
 @import 'tailwindcss';
 @import './base.css';
-
-html.cursor-hidden,
-html.cursor-hidden * {
-  cursor: none !important;
-}

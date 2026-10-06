@@ -5,7 +5,6 @@ import { createRouter, createWebHistory, RouterView } from 'vue-router'
 import HomePage from '@/pages/HomePage.vue'
 import { startGamepadPolling } from './gamepad'
 import { registerGlobalShortcuts } from './keyboard'
-import { hideIdleCursor } from './cursor'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -24,4 +23,3 @@ startGamepadPolling()
 
 document.body.focus()
 registerGlobalShortcuts()
-hideIdleCursor()
