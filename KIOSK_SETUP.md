@@ -209,6 +209,16 @@ kwriteconfig6 --file kwinrc --group Effect-hidecursor --key InactivityDuration 1
 
 This is the same as System Settings \-> Desktop Effects \-> Hide Cursor in a regular Plasma session. Log out and back in to apply.
 
+## Let games open on top of the kiosk
+
+The back-end starts Fightcade by running its command directly, which gives the game window no activation token. With KWin's default focus-stealing prevention, that window opens windowed behind the fullscreen kiosk. Nothing else competes for focus on the cabinet, so turn the prevention off:
+
+```bash
+kwriteconfig6 --file kwinrc --group Windows --key FocusStealingPreventionLevel 0
+```
+
+Log out and back in to apply.
+
 ## Custom loading screen
 
 ### 1. Build the theme RPM
