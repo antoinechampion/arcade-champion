@@ -17,13 +17,13 @@ RESET=/tmp/arcade-reset
 while true; do
   systemd-run --user --scope --quiet --unit=arcade-session \
     dbus-run-session -- /var/home/arcade/session-launcher-inner.sh || true
-  systemctl --user stop arcade-session.scope 2>/dev/null || true
+  systemctl --user stop app.slice || true
   [ -e "$RESET" ] || break
   rm "$RESET"
 done
 ```
 
-The session runs inside a transient systemd scope, and the scope is stopped after every run. That kills every leftover process (games, emulators, Wine helpers) wherever it sits in the process tree, since a cgroup contains all descendants. Check first that `systemctl --user status` works from a TTY, otherwise the session will not start.
+The session runs inside a transient systemd scope, and `app.slice` is stopped after every run. The scope lands in `app.slice`, and so do the scopes systemd creates for Flatpak apps, so this kills every leftover process (games, emulators, Wine helpers) wherever it sits in the process tree, since a cgroup contains all descendants. Check first that `systemctl --user status` works from a TTY, otherwise the session will not start.
 
 The loop restarts the whole session (KWin, XWayland, DBus, Steam, back-end, shell) when the back-end drops `/tmp/arcade-reset` and kills KWin, which happens when the **P1 Home button is held for 2 seconds**. Without the flag (Alt+F4, Back Office "Quit App"), the script exits and you land on the Plasma Login screen for debugging.
 
