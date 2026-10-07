@@ -12,8 +12,24 @@ Use three scripts: one outer script to create the DBus session, one compositor s
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec dbus-run-session -- /var/home/arcade/session-launcher-inner.sh
+RESET=/tmp/arcade-reset
+
+while true; do
+  dbus-run-session -- /var/home/arcade/session-launcher-inner.sh || true
+  [ -e "$RESET" ] || break
+  rm "$RESET"
+done
 ```
+
+The loop restarts the whole session (KWin, XWayland, DBus, Steam, back-end, shell) when the back-end drops `/tmp/arcade-reset` and kills KWin, which happens when the **P1 Home button is held for 2 seconds**. Without the flag (Alt+F4, Back Office "Quit App"), the script exits and you land on the Plasma Login screen for debugging.
+
+The back-end reads the gamepad from `/dev/input/event*` (the front-end gets no gamepad events while a game has focus), so the `arcade` user must be in the `input` group:
+
+```bash
+sudo usermod -aG input arcade
+```
+
+Log out and back in for the group to apply. Any connected gamepad's Home button triggers the reset.
 
 ### `/var/home/arcade/session-launcher-inner.sh`
 

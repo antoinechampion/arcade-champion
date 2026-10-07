@@ -3,10 +3,13 @@ package main
 import (
 	"back-end/database"
 	"back-end/handlers"
+	"back-end/input"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -21,6 +24,13 @@ func cors(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// resetSession drops the flag that session-launcher.sh checks, then kills KWin so the launcher restarts the whole session.
+func resetSession() {
+	log.Print("[reset] Home held, restarting session")
+	os.WriteFile("/tmp/arcade-reset", nil, 0644)
+	exec.Command("pkill", "-x", "kwin_wayland").Run()
 }
 
 func main() {
@@ -54,6 +64,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	input.WatchHomeHold(2*time.Second, resetSession)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/games/recent", handlers.RecentlyPlayedHandler(db)).
