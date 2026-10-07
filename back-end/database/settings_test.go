@@ -59,6 +59,29 @@ func TestFightcadeSettings(t *testing.T) {
 	}
 }
 
+func TestFightcadePath(t *testing.T) {
+	db := openTestDB(t)
+
+	path, err := db.FightcadePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if path != "" {
+		t.Fatalf("expected empty path, got %q", path)
+	}
+
+	if err := db.SetFightcadePath("flatpak run --command=fcade-quark com.fightcade.Fightcade"); err != nil {
+		t.Fatal(err)
+	}
+	path, err = db.FightcadePath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if path != "flatpak run --command=fcade-quark com.fightcade.Fightcade" {
+		t.Fatalf("unexpected path %q", path)
+	}
+}
+
 func TestRealesrganPath(t *testing.T) {
 	db := openTestDB(t)
 

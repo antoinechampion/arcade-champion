@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
-import { usePageNavigation, useComponentNavigation, type NavCommand } from '../navigation'
+import { usePageNavigation, useComponentNavigation, lockNavigation, unlockNavigation, type NavCommand } from '../navigation'
 
 function createTestApp(options: {
   zoneOrder: string[]
@@ -225,6 +225,27 @@ describe('usePageNavigation + useComponentNavigation', () => {
     await wrapper.setProps({ showA: true })
     await nextTick()
     expect(activeZone()).toBe('a')
+
+    wrapper.unmount()
+  })
+
+  it('ignores key events when navigation is locked', async () => {
+    const { activeZone, press, wrapper } = createTestApp({
+      zoneOrder: ['a', 'b'],
+      zones: {
+        a: { onCommand: () => false },
+        b: { onCommand: () => false },
+      },
+    })
+    expect(activeZone()).toBe('a')
+
+    lockNavigation()
+    await press('ArrowDown')
+    expect(activeZone()).toBe('a')
+
+    unlockNavigation()
+    await press('ArrowDown')
+    expect(activeZone()).toBe('b')
 
     wrapper.unmount()
   })

@@ -8,6 +8,7 @@ const router = useRouter()
 const fightcadeUsername = ref('')
 const fightcadePassword = ref('')
 const fightcadeCookie = ref('')
+const fightcadePath = ref('')
 const fightcadeMatchDuration = ref('3')
 const mamePath = ref('')
 const steamPath = ref('')
@@ -27,6 +28,7 @@ onMounted(async () => {
   fightcadeUsername.value = s.fightcadeUsername
   fightcadePassword.value = s.fightcadePassword
   fightcadeCookie.value = s.fightcadeCookie
+  fightcadePath.value = s.fightcadePath
   fightcadeMatchDuration.value = s.fightcadeMatchDuration || '3'
   mamePath.value = s.mamePath
   steamPath.value = s.steamPath
@@ -38,6 +40,7 @@ async function save() {
     fightcadeUsername: fightcadeUsername.value,
     fightcadePassword: fightcadePassword.value,
     fightcadeCookie: fightcadeCookie.value,
+    fightcadePath: fightcadePath.value,
     fightcadeMatchDuration: fightcadeMatchDuration.value,
     mamePath: mamePath.value,
     steamPath: steamPath.value,
@@ -69,6 +72,11 @@ async function save() {
         <label>
           Cookie
           <input v-model="fightcadeCookie" type="text" placeholder="Session cookie">
+        </label>
+
+        <label>
+          Executable Path
+          <input v-model="fightcadePath" type="text" placeholder="/usr/bin/fightcade">
         </label>
 
         <label>

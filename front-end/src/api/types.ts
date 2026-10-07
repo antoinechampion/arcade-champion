@@ -30,6 +30,7 @@ export interface Settings {
   fightcadeUsername: string
   fightcadePassword: string
   fightcadeCookie: string
+  fightcadePath: string
   fightcadeMatchDuration: string
   mamePath: string
   steamPath: string

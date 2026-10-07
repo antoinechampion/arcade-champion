@@ -11,6 +11,7 @@ type settings struct {
 	FightcadeUsername      string `json:"fightcadeUsername"`
 	FightcadePassword      string `json:"fightcadePassword"`
 	FightcadeCookie        string `json:"fightcadeCookie"`
+	FightcadePath          string `json:"fightcadePath"`
 	FightcadeMatchDuration string `json:"fightcadeMatchDuration"`
 	MamePath               string `json:"mamePath"`
 	SteamPath              string `json:"steamPath"`
@@ -57,6 +58,12 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 	if matchDuration == "" {
 		matchDuration = "3"
 	}
+	fightcadePath, err := db.FightcadePath()
+	if err != nil {
+		log.Printf("get settings fightcade.path: %v", err)
+		http.Error(w, "failed to load settings", http.StatusInternalServerError)
+		return
+	}
 	mamePath, err := db.MamePath()
 	if err != nil {
 		log.Printf("get settings mame.path: %v", err)
@@ -82,6 +89,7 @@ func getSettings(db *database.DB, w http.ResponseWriter) {
 		FightcadeUsername:      username,
 		FightcadePassword:      password,
 		FightcadeCookie:        cookie,
+		FightcadePath:          fightcadePath,
 		FightcadeMatchDuration: matchDuration,
 		MamePath:               mamePath,
 		SteamPath:              steamPath,
@@ -115,6 +123,11 @@ func putSettings(db *database.DB, w http.ResponseWriter, r *http.Request) {
 	}
 	if err := db.SetFightcadeMatchDuration(s.FightcadeMatchDuration); err != nil {
 		log.Printf("put settings fightcade.matchDuration: %v", err)
+		http.Error(w, "failed to save settings", http.StatusInternalServerError)
+		return
+	}
+	if err := db.SetFightcadePath(s.FightcadePath); err != nil {
+		log.Printf("put settings fightcade.path: %v", err)
 		http.Error(w, "failed to save settings", http.StatusInternalServerError)
 		return
 	}

@@ -69,6 +69,14 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 	}
 	log.Printf("[launch-fightcade] starting title=%q appID=%q mode=%q", game.Title, game.AppID, mode)
 
+	fightcadePath, err := f.db.FightcadePath()
+	if err != nil {
+		return err
+	}
+	if fightcadePath == "" {
+		return fmt.Errorf("fightcade path not configured")
+	}
+
 	creds, err := f.credentials()
 	if err != nil {
 		return err
@@ -76,7 +84,7 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 
 	switch mode {
 	case "training", "arcade":
-		err := f.launchOffline(ctx, creds, game.AppID, mode)
+		err := f.launchOffline(ctx, creds, fightcadePath, game.AppID, mode)
 		if err != nil {
 			log.Printf("[launch-fightcade] failed title=%q appID=%q mode=%q error=%v", game.Title, game.AppID, mode, err)
 			return err
@@ -90,7 +98,7 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 				matchDuration = n
 			}
 		}
-		_, err = fightcade.Lobby(ctx, creds, game.AppID, matchDuration)
+		_, err = fightcade.Lobby(ctx, creds, fightcadePath, game.AppID, matchDuration)
 		if err != nil {
 			log.Printf("[launch-fightcade] failed title=%q appID=%q mode=%q matchDuration=%d error=%v", game.Title, game.AppID, mode, matchDuration, err)
 			return err
@@ -100,7 +108,7 @@ func (f Fightcade) Launch(ctx context.Context, game database.Game, opts LaunchOp
 	}
 }
 
-func (f Fightcade) launchOffline(ctx context.Context, creds fightcade.Credentials, appID, mode string) error {
+func (f Fightcade) launchOffline(ctx context.Context, creds fightcade.Credentials, fightcadePath, appID, mode string) error {
 	sr, err := fightcade.Search(ctx, creds, appID)
 	if err != nil {
 		return err
@@ -120,7 +128,7 @@ func (f Fightcade) launchOffline(ctx context.Context, creds fightcade.Credential
 	}
 
 	if mode == "training" {
-		return fightcade.Training(emulator, gameid)
+		return fightcade.Training(fightcadePath, emulator, gameid)
 	}
-	return fightcade.Play(emulator, gameid)
+	return fightcade.Play(fightcadePath, emulator, gameid)
 }

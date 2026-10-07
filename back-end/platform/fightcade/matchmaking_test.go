@@ -15,7 +15,7 @@ import (
 func TestMatchmaker_FirstAcceptWinsAndCancelsRest(t *testing.T) {
 	prevDelay, prevLaunch := retryDelay, launchGame
 	retryDelay = 5 * time.Millisecond
-	launchGame = func(emulator, gameID string, event *MatchEvent) {}
+	launchGame = func(fightcadeCmd, emulator, gameID string, event *MatchEvent) {}
 	t.Cleanup(func() { retryDelay, launchGame = prevDelay, prevLaunch })
 
 	var mu sync.Mutex
@@ -100,7 +100,7 @@ func TestMatchmaker_IncomingChallengeDroppedIfAlreadyMatched(t *testing.T) {
 	prevRetry, prevAccept, prevLaunch := retryDelay, acceptDelay, launchGame
 	retryDelay = 5 * time.Millisecond
 	acceptDelay = 50 * time.Millisecond
-	launchGame = func(emulator, gameID string, event *MatchEvent) {}
+	launchGame = func(fightcadeCmd, emulator, gameID string, event *MatchEvent) {}
 	t.Cleanup(func() { retryDelay, acceptDelay, launchGame = prevRetry, prevAccept, prevLaunch })
 
 	var mu sync.Mutex

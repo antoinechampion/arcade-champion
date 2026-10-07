@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"runtime"
+	"strings"
 )
 
 var nativeGGPO = map[string]bool{
@@ -34,14 +34,17 @@ func buildTrainingURL(emulator, gameid string) string {
 	return fmt.Sprintf("fcade://training/%s/%s", emulator, gameid)
 }
 
-func openURL(url string) error {
-	log.Printf("opening url: %s\n", url)
-	switch runtime.GOOS {
-	case "darwin":
-		return exec.Command("open", url).Start()
-	case "windows":
-		return exec.Command("cmd", "/c", "start", url).Start()
-	default:
-		return exec.Command("xdg-open", url).Start()
+func parseCommand(cmd string) (string, []string) {
+	fields := strings.Fields(cmd)
+	if len(fields) == 0 {
+		return cmd, nil
 	}
+	return fields[0], fields[1:]
+}
+
+func openURL(fightcadeCmd, url string) error {
+	log.Printf("opening url: %s with command: %s\n", url, fightcadeCmd)
+	name, args := parseCommand(fightcadeCmd)
+	args = append(args, url)
+	return exec.Command(name, args...).Start()
 }

@@ -162,7 +162,7 @@ func Search(ctx context.Context, creds Credentials, query string) (SearchResult,
 	return SearchResult{Channels: channels, Cookie: cookie}, nil
 }
 
-func Lobby(ctx context.Context, creds Credentials, game string, matchDuration int) (*MatchEvent, error) {
+func Lobby(ctx context.Context, creds Credentials, fightcadeCmd, game string, matchDuration int) (*MatchEvent, error) {
 	log.Printf("[fightcade] Lobby: starting for game=%q", game)
 	client, err := connect(ctx)
 	if err != nil {
@@ -236,14 +236,15 @@ func Lobby(ctx context.Context, creds Credentials, game string, matchDuration in
 	}
 
 	mm := &matchmaker{client: client, config: lobbyConfig{
-		channelName: channelname,
-		emulator:    emulator,
-		gameID:      gameid,
-		ranked:      ranked,
-		username:    username,
-		token:       token,
-		users:       lobbyUsers,
-		myRank:      myRank,
+		fightcadeCmd: fightcadeCmd,
+		channelName:  channelname,
+		emulator:     emulator,
+		gameID:       gameid,
+		ranked:       ranked,
+		username:     username,
+		token:        token,
+		users:        lobbyUsers,
+		myRank:       myRank,
 	}}
 	return mm.run(ctx)
 }
@@ -314,10 +315,10 @@ func parseLobbyUsers(users []any, localUser string) ([]LobbyUser, int) {
 	return parsed, myRank
 }
 
-func Play(emulator, gameid string) error {
-	return openURL(buildPlayURL(emulator, gameid))
+func Play(fightcadeCmd, emulator, gameid string) error {
+	return openURL(fightcadeCmd, buildPlayURL(emulator, gameid))
 }
 
-func Training(emulator, gameid string) error {
-	return openURL(buildTrainingURL(emulator, gameid))
+func Training(fightcadeCmd, emulator, gameid string) error {
+	return openURL(fightcadeCmd, buildTrainingURL(emulator, gameid))
 }

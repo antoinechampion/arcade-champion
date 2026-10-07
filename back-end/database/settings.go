@@ -53,6 +53,9 @@ func (d *DB) SetFightcadeMatchDuration(v string) error {
 	return d.setSetting("fightcade.matchDuration", v)
 }
 
+func (d *DB) FightcadePath() (string, error)  { return d.getSetting("fightcade.path") }
+func (d *DB) SetFightcadePath(v string) error { return d.setSetting("fightcade.path", v) }
+
 func (d *DB) MamePath() (string, error)  { return d.getSetting("mame.path") }
 func (d *DB) SetMamePath(v string) error { return d.setSetting("mame.path", v) }
 

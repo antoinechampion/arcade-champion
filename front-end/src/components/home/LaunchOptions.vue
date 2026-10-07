@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import ArcadeButton from '@/components/design-system/ArcadeButton.vue'
-import type { NavCommand } from '@/composables/navigation'
+import { lockNavigation, unlockNavigation } from '@/composables/navigation'
 
 export type LaunchMode = 'online' | 'training' | 'arcade'
 
@@ -18,37 +18,42 @@ const options: { mode: LaunchMode; label: string }[] = [
 
 const focusedIndex = ref(0)
 
-const KEY_MAP: Record<string, NavCommand> = {
-  ArrowLeft: 'left',
-  ArrowRight: 'right',
-  ' ': 'confirm',
-  Escape: 'up',
-}
+const NAV_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', ' ', 'Escape'])
 
 function onKeydown(e: KeyboardEvent) {
-  const command = KEY_MAP[e.key]
-  if (!command) return
+  if (!NAV_KEYS.has(e.key)) return
   e.preventDefault()
   e.stopPropagation()
+  e.stopImmediatePropagation()
 
-  switch (command) {
-    case 'left':
+  switch (e.key) {
+    case 'ArrowLeft':
       if (focusedIndex.value > 0) focusedIndex.value--
       break
-    case 'right':
+    case 'ArrowRight':
       if (focusedIndex.value < options.length - 1) focusedIndex.value++
       break
-    case 'confirm':
+    case ' ':
       emit('select', options[focusedIndex.value].mode)
       break
-    case 'up':
+    case 'Escape':
       emit('cancel')
+      break
+    case 'ArrowUp':
+    case 'ArrowDown':
       break
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown, { capture: true }))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown, { capture: true }))
+onMounted(() => {
+  lockNavigation()
+  window.addEventListener('keydown', onKeydown, { capture: true })
+})
+
+onUnmounted(() => {
+  unlockNavigation()
+  window.removeEventListener('keydown', onKeydown, { capture: true })
+})
 </script>
 
 <template>

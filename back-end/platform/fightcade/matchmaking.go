@@ -12,14 +12,15 @@ import (
 )
 
 type lobbyConfig struct {
-	channelName string
-	emulator    string
-	gameID      string
-	ranked      int // -1=training, 0=unranked, 2/3/5/10/20=FT ranked
-	username    string
-	token       string
-	users       []LobbyUser
-	myRank      int
+	fightcadeCmd string
+	channelName  string
+	emulator     string
+	gameID       string
+	ranked       int // -1=training, 0=unranked, 2/3/5/10/20=FT ranked
+	username     string
+	token        string
+	users        []LobbyUser
+	myRank       int
 }
 
 type matchmaker struct {
@@ -55,7 +56,7 @@ func (m *matchmaker) run(ctx context.Context) (*MatchEvent, error) {
 		// the second matchCh send) and double game launches.
 		matchOnce.Do(func() {
 			m.matched = event.Opponent
-			launchGame(m.config.emulator, m.config.gameID, event)
+			launchGame(m.config.fightcadeCmd, m.config.emulator, m.config.gameID, event)
 			matchmakingCh <- event
 			cancelMatch()
 		})
@@ -230,10 +231,10 @@ func parseStartEvent(msg map[string]any, fallbackToken string) *MatchEvent {
 }
 
 // launchGame is a var so tests can stub the side-effecting URL open.
-var launchGame = func(emulator, gameID string, event *MatchEvent) {
+var launchGame = func(fightcadeCmd, emulator, gameID string, event *MatchEvent) {
 	url := buildMatchURL(emulator, gameID, event.QuarkID, event.PlayerID, event.Port, event.Delay, event.Ranked, event.Token)
 	log.Printf("[fightcade] launchGame: opening url=%s", url)
-	if err := openURL(url); err != nil {
+	if err := openURL(fightcadeCmd, url); err != nil {
 		log.Printf("[fightcade] launchGame: openURL error: %v", err)
 	}
 }
