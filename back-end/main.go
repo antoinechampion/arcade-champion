@@ -26,11 +26,10 @@ func cors(next http.Handler) http.Handler {
 	})
 }
 
-// resetSession drops the flag that session-launcher.sh checks, then kills KWin so the launcher restarts the whole session.
-func resetSession() {
-	log.Print("[reset] Home held, restarting session")
-	os.WriteFile("/tmp/arcade-reset", nil, 0644)
-	exec.Command("pkill", "-x", "kwin_wayland").Run()
+// logout ends the whole login session, killing any running game. Relogin brings the kiosk back.
+func logout() {
+	log.Print("[reset] Home held, logging out")
+	exec.Command("loginctl", "terminate-session", os.Getenv("XDG_SESSION_ID")).Run()
 }
 
 func main() {
@@ -65,7 +64,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	input.WatchHomeHold(2*time.Second, resetSession)
+	input.WatchHomeHold(2*time.Second, logout)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/games/recent", handlers.RecentlyPlayedHandler(db)).

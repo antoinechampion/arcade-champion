@@ -12,20 +12,10 @@ Use three scripts: one outer script to create the DBus session, one compositor s
 #!/usr/bin/env bash
 set -euo pipefail
 
-RESET=/tmp/arcade-reset
-
-while true; do
-  systemd-run --user --scope --quiet --unit=arcade-session \
-    dbus-run-session -- /var/home/arcade/session-launcher-inner.sh || true
-  systemctl --user stop app.slice || true
-  [ -e "$RESET" ] || break
-  rm "$RESET"
-done
+exec dbus-run-session -- /var/home/arcade/session-launcher-inner.sh
 ```
 
-The session runs inside a transient systemd scope, and `app.slice` is stopped after every run. The scope lands in `app.slice`, and so do the scopes systemd creates for Flatpak apps, so this kills every leftover process (games, emulators, Wine helpers) wherever it sits in the process tree, since a cgroup contains all descendants. Check first that `systemctl --user status` works from a TTY, otherwise the session will not start.
-
-The loop restarts the whole session (KWin, XWayland, DBus, Steam, back-end, shell) when the back-end drops `/tmp/arcade-reset` and kills KWin, which happens when the **P1 Home button is held for 2 seconds**. Without the flag (Alt+F4, Back Office "Quit App"), the script exits and you land on the Plasma Login screen for debugging.
+Holding the **Home button of any gamepad for 2 seconds** logs the session out (`loginctl terminate-session`), which kills the running game and everything else. Enable **autologin and relogin** in Plasma Login settings so the kiosk comes back by itself. To debug, switch to a TTY (`Ctrl+Alt+F3`), log in and run `startplasma-wayland`, or use SSH.
 
 The back-end reads the gamepad from `/dev/input/event*` (the front-end gets no gamepad events while a game has focus), so the `arcade` user must be in the `input` group:
 
@@ -33,7 +23,7 @@ The back-end reads the gamepad from `/dev/input/event*` (the front-end gets no g
 sudo usermod -aG input arcade
 ```
 
-Log out and back in for the group to apply. Any connected gamepad's Home button triggers the reset.
+Log out and back in for the group to apply.
 
 ### `/var/home/arcade/session-launcher-inner.sh`
 
@@ -206,7 +196,7 @@ plasma.desktop
 
 ## Plasma Login configuration
 
-Reboot, try to log in using the Arcade Champion session. If everything works well, go to System Settings \-> Connexion screen and enable autologin in this session (do not enable automated relogin).
+Reboot, try to log in using the Arcade Champion session. If everything works well, go to System Settings \-> Connexion screen and enable autologin in this session, and also relogin (see the reset button above).
 
 ## Hide the mouse cursor
 
